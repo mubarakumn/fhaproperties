@@ -1,0 +1,2642 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { connectDB } from "../../lib/db.js";
+import { getAdminFromCookies } from "../../lib/adminAuth.js";
+import Property from "../../models/Property.js";
+
+export const prerender = false;
+
+const admin = await getAdminFromCookies(Astro.cookies);
+
+if (!admin) {
+  return Astro.redirect("/admin/login/");
+}
+
+let pendingSubmissions = [];
+let publishedProperties = [];
+let draftsAndArchived = [];
+let loadError = false;
+
+try {
+  await connectDB();
+
+  [pendingSubmissions, publishedProperties, draftsAndArchived] = await Promise.all([
+    Property.find({ status: "pending_review" }).sort({ createdAt: -1 }).lean(),
+    Property.find({ status: "published" }).sort({ publishedAt: -1, createdAt: -1 }).lean(),
+    Property.find({ status: { $in: ["draft", "rejected", "archived"] } }).sort({ updatedAt: -1 }).lean(),
+  ]);
+} catch (error) {
+  console.error("Failed to load admin dashboard properties:", error);
+  loadError = true;
+}
+
+const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
+---
+
+<BaseLayout
+  title="Admin Dashboard | FHA Properties Management"
+  description="Manage listings, review submissions, and publish new properties."
+>
+  <main class="admin-dashboard">
+    <!-- Top Navigation Bar -->
+    <header class="dashboard-topbar">
+      <div class="topbar-inner">
+        <div class="brand-group">
+          <a href="/admin/" class="admin-brand" aria-label="FHA Properties Management dashboard">
+            <img class="admin-logo" src="/fha_logo.png" alt="" width="118" height="79" />
+            <span class="brand-tag">MANAGEMENT DASHBOARD</span>
+          </a>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="admin-pill">
+            <span class="admin-dot" aria-hidden="true"></span>
+            Logged in as <strong>{admin}</strong>
+          </span>
+
+          <a href="/properties/" target="_blank" rel="noopener noreferrer" class="link-btn">
+            View Live Site ↗
+          </a>
+
+          <button id="logout-button" class="btn-logout" type="button">
+            Log out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Title + Quick Action Row -->
+      <section class="dashboard-head">
+        <div>
+          <p class="eyebrow">ADMINISTRATION CONSOLE</p>
+          <h1>Property Management</h1>
+          <p class="lead">
+            Review incoming submissions from the public, publish official FHA properties, and manage active listings.
+          </p>
+        </div>
+
+        <button id="quick-create-btn" class="btn-gold-action" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Publish New Property
+        </button>
+      </section>
+
+      <!-- Global Alert / Message -->
+      <div id="global-message" role="alert" aria-live="polite" hidden></div>
+
+      <!-- Overview Stats Cards -->
+      <div class="stats-grid">
+        <button class="stat-card stat-btn" data-tab-target="pending" type="button">
+          <div class="stat-icon pending-icon">⏳</div>
+          <div class="stat-data">
+            <span class="stat-number">{pendingSubmissions.length}</span>
+            <span class="stat-label">Pending Review</span>
+          </div>
+        </button>
+
+        <button class="stat-card stat-btn" data-tab-target="published" type="button">
+          <div class="stat-icon live-icon">🌐</div>
+          <div class="stat-data">
+            <span class="stat-number">{publishedProperties.length}</span>
+            <span class="stat-label">Live on Website</span>
+          </div>
+        </button>
+
+        <div class="stat-card">
+          <div class="stat-icon fha-icon">🏛️</div>
+          <div class="stat-data">
+            <span class="stat-number">{fhaCount}</span>
+            <span class="stat-label">Official FHA Listings</span>
+          </div>
+        </div>
+
+        <button class="stat-card stat-btn" data-tab-target="create" type="button">
+          <div class="stat-icon add-icon">➕</div>
+          <div class="stat-data">
+            <span class="stat-number">Create</span>
+            <span class="stat-label">Add Listing Directly</span>
+          </div>
+        </button>
+
+        <button class="stat-card stat-btn" data-tab-target="other" type="button">
+          <div class="stat-icon other-icon">↗</div>
+          <div class="stat-data">
+            <span class="stat-number">{draftsAndArchived.length}</span>
+            <span class="stat-label">Drafts & Archived</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="dashboard-tabs" aria-label="Dashboard sections" role="tablist">
+        <button class="tab-btn active" id="tab-button-pending" role="tab" aria-controls="tab-pending" aria-selected="true" tabindex="0" data-tab="pending" type="button">
+          Submissions Awaiting Review
+          <span class="tab-badge">{pendingSubmissions.length}</span>
+        </button>
+        <button class="tab-btn" id="tab-button-published" role="tab" aria-controls="tab-published" aria-selected="false" tabindex="-1" data-tab="published" type="button">
+          Published Listings
+          <span class="tab-badge">{publishedProperties.length}</span>
+        </button>
+        <button class="tab-btn" id="tab-button-other" role="tab" aria-controls="tab-other" aria-selected="false" tabindex="-1" data-tab="other" type="button">
+          Drafts & Archived
+          <span class="tab-badge">{draftsAndArchived.length}</span>
+        </button>
+        <button class="tab-btn" id="tab-button-create" role="tab" aria-controls="tab-create" aria-selected="false" tabindex="-1" data-tab="create" type="button">
+          + Publish New Property
+        </button>
+      </nav>
+
+      {loadError && (
+        <div class="notice-box error-box">
+          <h3>Database Connection Error</h3>
+          <p>Unable to connect to the database. Please verify your connection settings.</p>
+          <button class="btn-refresh" type="button" onclick="window.location.reload()">Reload Page</button>
+        </div>
+      )}
+
+      <!-- =============================================================== -->
+      <!-- TAB 1: PENDING SUBMISSIONS REVIEW -->
+      <!-- =============================================================== -->
+      <section id="tab-pending" class="tab-pane active" role="tabpanel" aria-labelledby="tab-button-pending">
+        <div class="pane-header">
+          <div>
+            <h2>Pending Submissions ({pendingSubmissions.length})</h2>
+            <p>Submissions from the public awaiting verification before appearing live on the website.</p>
+          </div>
+        </div>
+
+        {pendingSubmissions.length === 0 ? (
+          <div class="empty-box">
+            <div class="empty-symbol">✓</div>
+            <h3>All Caught Up</h3>
+            <p>There are no property submissions currently waiting for review.</p>
+          </div>
+        ) : (
+          <div class="submissions-grid">
+            {pendingSubmissions.map((property) => (
+              <article class="submission-card" data-id={property._id.toString()}>
+                <div class="card-top">
+                  <div class="card-titles">
+                    <span class="badge badge-pending">Pending Review</span>
+                    <h3>{property.title}</h3>
+                    <p class="card-geo">
+                      📍 {[property.address, property.city, property.state].filter(Boolean).join(", ") || "Location not specified"}
+                    </p>
+                  </div>
+                  <div class="card-price-badge">
+                    {property.priceLabel ||
+                      (property.priceAmount != null
+                        ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
+                        : "Price on request")}
+                  </div>
+                </div>
+
+                <!-- Photos Gallery -->
+                {property.images && property.images.length > 0 && (
+                  <div class="property-gallery-strip">
+                    {property.images.map((src, index) => (
+                      <a href={src} target="_blank" rel="noopener noreferrer" class="gallery-photo-link" title={`Click to view full photo ${index + 1}`}>
+                        <img src={src} alt={`Photo ${index + 1} of ${property.title}`} loading="lazy" />
+                        <span class="gallery-photo-fallback" hidden>Photo unavailable</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                <!-- Specs Row -->
+                <div class="specs-bar">
+                  <div class="spec-cell">
+                    <span class="spec-label">Type</span>
+                    <strong>{property.type || "—"}</strong>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-label">Purpose</span>
+                    <strong>For {property.listingType || "Sale"}</strong>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-label">Bedrooms</span>
+                    <strong>{property.bedrooms ?? "—"}</strong>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-label">Bathrooms</span>
+                    <strong>{property.bathrooms ?? "—"}</strong>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-label">Area</span>
+                    <strong>{property.area || "—"}</strong>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-label">Submitted</span>
+                    <strong>
+                      {property.createdAt
+                        ? new Date(property.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
+                        : "—"}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <div class="desc-box">
+                  <h4>Description</h4>
+                  <p>{property.description}</p>
+                </div>
+
+                <!-- Features if any -->
+                {property.features && property.features.length > 0 && (
+                  <div class="features-wrap">
+                    <h4>Features</h4>
+                    <div class="tags-list">
+                      {property.features.map((feat) => (
+                        <span class="feature-tag">{feat}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <!-- Submitter Contact Information -->
+                <div class="contact-box">
+                  <div class="contact-head">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <strong>Submitter Details:</strong>
+                  </div>
+                  <div class="contact-data-row">
+                    <span><strong>Name:</strong> {property.submittedBy?.name || "Not provided"}</span>
+                    <span>
+                      <strong>Phone:</strong>{" "}
+                      {property.submittedBy?.phone ? (
+                        <a href={`tel:${property.submittedBy.phone}`} class="tel-link">
+                          {property.submittedBy.phone}
+                        </a>
+                      ) : "Not provided"}
+                    </span>
+                    {property.submittedBy?.email && (
+                      <span>
+                        <strong>Email:</strong>{" "}
+                        <a href={`mailto:${property.submittedBy.email}`} class="mail-link">
+                          {property.submittedBy.email}
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <!-- Review Notes Input -->
+                <div class="review-comment-wrap">
+                  <label for={`notes-${property._id}`}>Review notes / memo (optional):</label>
+                  <input
+                    id={`notes-${property._id}`}
+                    type="text"
+                    class="review-notes-input"
+                    placeholder="e.g. Verified by phone call, documentation in order"
+                    maxlength="500"
+                  />
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card-actions-row">
+                  <a href={`/admin/properties/${property._id}/edit/`} class="btn-edit-property">
+                    ✏️ Edit
+                  </a>
+                  <button class="btn-approve" data-action="publish" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Approve & Publish Live
+                  </button>
+                  <button class="btn-reject" data-action="reject" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Reject Submission
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- TAB 2: PUBLISHED PROPERTIES LIST -->
+      <!-- =============================================================== -->
+      <section id="tab-published" class="tab-pane" role="tabpanel" aria-labelledby="tab-button-published">
+        <div class="pane-header">
+          <div>
+            <h2>Published Properties ({publishedProperties.length})</h2>
+            <p>Active listings currently live and visible on the FHA Properties Management website.</p>
+          </div>
+        </div>
+
+        {publishedProperties.length === 0 ? (
+          <div class="empty-box">
+            <div class="empty-symbol">ℹ️</div>
+            <h3>No Published Properties Yet</h3>
+            <p>Publish a new property directly using the creator tab or approve pending submissions.</p>
+          </div>
+        ) : (
+          <div class="published-grid">
+            {publishedProperties.map((property) => (
+              <article class="pub-card" data-id={property._id.toString()}>
+                <div class="pub-media">
+                  {property.images?.[0] && (
+                    <img
+                      src={property.images[0]}
+                      alt={property.title}
+                      loading="lazy"
+                    />
+                  )}
+                  <div class="pub-no-photo" hidden={Boolean(property.images?.[0])}>Photo unavailable</div>
+                  <div class="pub-badges">
+                    <span class={`badge ${property.source === "fha" ? "badge-fha" : "badge-approved"}`}>
+                      {property.source === "fha" ? "🏛️ Official FHA" : "✓ Approved Public"}
+                    </span>
+                    <span class="badge badge-purpose">For {property.listingType}</span>
+                  </div>
+                </div>
+
+                <div class="pub-body">
+                  <div class="pub-type-line">
+                    <span class="pub-type">{property.type}</span>
+                    <span class="pub-price">
+                      {property.priceLabel ||
+                        (property.priceAmount != null
+                          ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
+                          : "Price on request")}
+                    </span>
+                  </div>
+
+                  <h3 class="pub-title">{property.title}</h3>
+                  <p class="pub-location">📍 {[property.city, property.state].filter(Boolean).join(", ")}</p>
+
+                  <div class="pub-meta-row">
+                    {property.bedrooms != null && <span>🛏️ {property.bedrooms} beds</span>}
+                    {property.bathrooms != null && <span>🚿 {property.bathrooms} baths</span>}
+                    {property.area && <span>📐 {property.area}</span>}
+                  </div>
+
+                  <div class="pub-actions">
+                    <a href={`/properties/${property.slug}/`} target="_blank" rel="noopener noreferrer" class="btn-pub-view">
+                      View Live ↗
+                    </a>
+                    <a href={`/admin/properties/${property._id}/edit/`} class="btn-pub-edit">
+                      Edit
+                    </a>
+                    <button class="btn-pub-unpublish" data-action="unpublish" type="button" title="Move back to draft">
+                      Unpublish
+                    </button>
+                    <button class="btn-pub-delete" data-action="delete" type="button" title="Delete property permanently">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section id="tab-other" class="tab-pane" role="tabpanel" aria-labelledby="tab-button-other">
+        <div class="pane-header">
+          <div>
+            <h2>Drafts & Archived ({draftsAndArchived.length})</h2>
+            <p>Listings that are not currently visible on the public website.</p>
+          </div>
+        </div>
+
+        {draftsAndArchived.length === 0 ? (
+          <div class="empty-box">
+            <div class="empty-symbol">✓</div>
+            <h3>No inactive listings</h3>
+            <p>Draft, rejected, and archived properties will appear here.</p>
+          </div>
+        ) : (
+          <div class="other-listings-wrap">
+            <table class="other-listings-table">
+              <thead>
+                <tr>
+                  <th scope="col">Property</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Last updated</th>
+                  <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {draftsAndArchived.map((property) => (
+                  <tr class="other-listing-row" data-id={property._id.toString()}>
+                    <td>
+                      <strong>{property.title}</strong>
+                      <span>{[property.city, property.state].filter(Boolean).join(", ") || "Location not specified"}</span>
+                    </td>
+                    <td>
+                      <span class={`status-label status-${property.status}`}>
+                        {property.status.replaceAll("_", " ")}
+                      </span>
+                    </td>
+                    <td>
+                      {property.priceLabel ||
+                        (property.priceAmount != null
+                          ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
+                          : "Price on request")}
+                    </td>
+                    <td>
+                      {property.updatedAt
+                        ? new Date(property.updatedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
+                        : "—"}
+                    </td>
+                    <td>
+                      <div class="other-listing-actions">
+                        <a href={`/admin/properties/${property._id}/edit/`} class="btn-other-edit">
+                          Edit
+                        </a>
+                        <button class="btn-other-publish" data-action="publish" type="button">
+                          Publish
+                        </button>
+                        <button class="btn-other-delete" data-action="delete" type="button">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- TAB 3: PUBLISH NEW PROPERTY (ADMIN DIRECT CREATOR) -->
+      <!-- =============================================================== -->
+      <section id="tab-create" class="tab-pane" role="tabpanel" aria-labelledby="tab-button-create">
+        <div class="pane-header">
+          <div>
+            <h2>Publish a New Property</h2>
+            <p>Directly create and publish an official FHA listing to the website without going through review.</p>
+          </div>
+        </div>
+
+        <form id="admin-create-form" class="creator-form" novalidate>
+          <!-- Section 1: Property Info -->
+          <div class="form-box">
+            <div class="form-box-head">
+              <span class="f-num">01</span>
+              <div>
+                <h3>Basic Information</h3>
+                <p>Title, type, and purpose of the property.</p>
+              </div>
+            </div>
+
+            <div class="f-grid">
+              <div class="f-group full-width">
+                <label for="c-title">Property Title <span class="req">*</span></label>
+                <input
+                  id="c-title"
+                  name="title"
+                  type="text"
+                  placeholder="e.g. Luxury 4-Bedroom Detached Duplex in Maitama, Abuja"
+                  required
+                  maxlength="160"
+                />
+              </div>
+
+              <div class="f-group">
+                <label for="c-type">Property Type <span class="req">*</span></label>
+                <select id="c-type" name="type" required>
+                  <option value="">Select property type</option>
+                  <option value="House">House</option>
+                  <option value="Apartment">Apartment</option>
+                  <option value="Land">Land</option>
+                  <option value="Commercial">Commercial Property</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="f-group">
+                <label for="c-listingType">Listing Purpose <span class="req">*</span></label>
+                <select id="c-listingType" name="listingType" required>
+                  <option value="Sale">For Sale</option>
+                  <option value="Rent">For Rent</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Location -->
+          <div class="form-box">
+            <div class="form-box-head">
+              <span class="f-num">02</span>
+              <div>
+                <h3>Location Details</h3>
+                <p>Specify state, city, and street address.</p>
+              </div>
+            </div>
+
+            <div class="f-grid">
+              <div class="f-group">
+                <label for="c-state">State <span class="req">*</span></label>
+                <input id="c-state" name="state" type="text" placeholder="e.g. Abuja FCT, Lagos, Lagos" required maxlength="80" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-city">City / District <span class="req">*</span></label>
+                <input id="c-city" name="city" type="text" placeholder="e.g. Maitama, Lekki, GRA" required maxlength="100" />
+              </div>
+
+              <div class="f-group full-width">
+                <label for="c-address">Street Address / Landmark (optional)</label>
+                <input id="c-address" name="address" type="text" placeholder="e.g. Plot 402, Constitution Avenue" maxlength="250" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Pricing & Specifications -->
+          <div class="form-box">
+            <div class="form-box-head">
+              <span class="f-num">03</span>
+              <div>
+                <h3>Pricing & Specifications</h3>
+                <p>Financial details, rooms, and dimensions.</p>
+              </div>
+            </div>
+
+            <div class="f-grid">
+              <div class="f-group">
+                <label for="c-price">Price in Naira (₦)</label>
+                <div class="prefix-wrap">
+                  <span class="prefix">₦</span>
+                  <input id="c-price" name="priceAmount" type="number" min="0" step="1" placeholder="e.g. 85000000" class="input-with-prefix" />
+                </div>
+              </div>
+
+              <div class="f-group">
+                <label for="c-priceLabel">Price Note / Label (optional)</label>
+                <input id="c-priceLabel" name="priceLabel" type="text" placeholder="e.g. Negotiable, ₦25M / annum" maxlength="100" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-beds">Bedrooms</label>
+                <input id="c-beds" name="bedrooms" type="number" min="0" max="100" placeholder="0" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-baths">Bathrooms</label>
+                <input id="c-baths" name="bathrooms" type="number" min="0" max="100" placeholder="0" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-area">Total Area / Size</label>
+                <input id="c-area" name="area" type="text" placeholder="e.g. 650 sqm, 2 Plots" maxlength="100" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-features">Key Features (comma-separated)</label>
+                <input id="c-features" name="features" type="text" placeholder="e.g. Swimming Pool, Borehole, CCTV, 24/7 Security" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Description -->
+          <div class="form-box">
+            <div class="form-box-head">
+              <span class="f-num">04</span>
+              <div>
+                <h3>Property Description <span class="req">*</span></h3>
+                <p>Provide a comprehensive overview of the property.</p>
+              </div>
+            </div>
+
+            <div class="f-group full-width">
+              <textarea
+                id="c-desc"
+                name="description"
+                rows="6"
+                placeholder="Describe the architectural condition, compound, surrounding amenities, access roads, and documentation (e.g., C of O, Governor's Consent)."
+                required
+                minlength="20"
+                maxlength="5000"
+              ></textarea>
+              <div class="char-bar"><span id="admin-desc-count">0</span> / 5000</div>
+            </div>
+          </div>
+
+          <!-- Section 5: Property Images (Upload up to 5 photos or URLs) -->
+          <div class="form-box">
+            <div class="form-box-head">
+              <span class="f-num">05</span>
+              <div>
+                <h3>Property Images (Up to 5)</h3>
+                <p>Upload photos from your computer or paste direct image links.</p>
+              </div>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="admin-drop-zone" class="drop-target" role="button" tabindex="0">
+              <input
+                id="admin-file-input"
+                name="images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                class="sr-only"
+                tabindex="-1"
+              />
+              <div class="drop-content">
+                <div class="drop-icon">📷</div>
+                <p><strong>Click to browse photos</strong> or drag & drop files here</p>
+                <small>JPEG, PNG, WebP · Max 5MB per file · Up to 5 images total</small>
+              </div>
+            </div>
+
+            <!-- Preview thumbnails -->
+            <div id="admin-preview-strip" class="preview-strip"></div>
+
+            <!-- URL Slots -->
+            <div class="url-block">
+              <p class="url-heading">Or add image URLs:</p>
+              <div id="admin-url-slots" class="url-slots-col"></div>
+              <button id="admin-add-url" class="btn-sub-action" type="button">
+                + Add Image Link (URL)
+              </button>
+            </div>
+
+            <div class="counter-row">
+              <span id="admin-img-counter" class="img-badge">0 / 5 images</span>
+              <span id="admin-limit-warn" class="warn-text" hidden>Maximum 5 images reached.</span>
+            </div>
+          </div>
+
+          <!-- Section 6: Publishing Options & Contact -->
+          <div class="form-box submit-box">
+            <div class="publish-choice-row">
+              <label class="radio-card">
+                <input type="radio" name="status" value="published" checked />
+                <div class="radio-text">
+                  <strong>Publish Immediately</strong>
+                  <span>Listing will appear on the public website right away</span>
+                </div>
+              </label>
+
+              <label class="radio-card">
+                <input type="radio" name="status" value="draft" />
+                <div class="radio-text">
+                  <strong>Save as Draft</strong>
+                  <span>Store in dashboard without making it public yet</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="f-grid contact-grid">
+              <div class="f-group">
+                <label for="c-contactName">Contact Name</label>
+                <input id="c-contactName" name="contactName" type="text" value="FHA Properties Management" />
+              </div>
+              <div class="f-group">
+                <label for="c-contactPhone">Contact Phone</label>
+                <input id="c-contactPhone" name="contactPhone" type="tel" value="+234 906 671 5348" />
+              </div>
+              <div class="f-group">
+                <label for="c-contactEmail">Contact Email</label>
+                <input id="c-contactEmail" name="contactEmail" type="email" value="fehintolahayodeji@gmail.com" />
+              </div>
+            </div>
+
+            <div id="create-message" class="creator-msg" role="alert" hidden></div>
+
+            <button id="create-submit-btn" class="btn-publish-submit" type="submit">
+              <span class="btn-lbl">Publish Property</span>
+              <span class="btn-spin" hidden>⏳ Saving...</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  :root {
+    --gold: var(--color-gold);
+    --gold-light: rgb(200 152 31 / 12%);
+    --ink: var(--color-ink);
+    --bg-page: var(--color-ivory);
+    --card-bg: var(--color-ivory);
+    --border: var(--color-border);
+    --muted: var(--color-muted);
+    --green: var(--color-brand);
+    --red: var(--color-brand-deep);
+  }
+
+  .admin-dashboard {
+    min-height: 100vh;
+    background: var(--bg-page);
+    color: var(--ink);
+    font-family: inherit;
+    padding-bottom: 80px;
+  }
+
+  /* ── Topbar ── */
+  .dashboard-topbar {
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    border-bottom: 1px solid rgb(239 240 235 / 16%);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--color-ivory);
+  }
+
+  .admin-logo {
+    display: block;
+    width: 118px;
+    height: auto;
+    padding: 3px 4px;
+    background: var(--color-ivory);
+    border-radius: 2px;
+  }
+
+  .brand-tag {
+    padding-left: 12px;
+    border-left: 1px solid rgb(239 240 235 / 24%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--color-slate);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .admin-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgb(239 240 235 / 12%);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--color-slate);
+  }
+
+  .admin-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-gold);
+  }
+
+  .link-btn {
+    color: var(--gold);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgb(200 152 31 / 16%);
+    transition: background 150ms;
+  }
+
+  .link-btn:hover {
+    background: rgb(200 152 31 / 24%);
+  }
+
+  .btn-logout {
+    padding: 6px 14px;
+    border: 1px solid rgb(239 240 235 / 24%);
+    background: transparent;
+    color: var(--color-ivory);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-logout:hover {
+    background: rgb(239 240 235 / 18%);
+  }
+
+  /* ── Content Container ── */
+  .admin-content {
+    max-width: 1240px;
+    margin: 36px auto 0;
+    padding: 0 20px;
+  }
+
+  /* ── Head Row ── */
+  .dashboard-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow {
+    margin: 0 0 6px;
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .dashboard-head h1 {
+    margin: 0 0 8px;
+    font-family: Georgia, serif;
+    font-size: clamp(2rem, 3.5vw, 2.7rem);
+    letter-spacing: -0.035em;
+  }
+
+  .lead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 620px;
+    line-height: 1.6;
+  }
+
+  .btn-gold-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    border: 1px solid var(--color-brand);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 150ms, transform 100ms;
+  }
+
+  .btn-gold-action:hover {
+    background: var(--color-brand-deep);
+    transform: translateY(-1px);
+  }
+
+  /* ── Stats Grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    min-height: 58px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-sizing: border-box;
+  }
+
+  .stat-btn {
+    cursor: pointer;
+    font: inherit;
+    transition: border-color 150ms, transform 100ms, box-shadow 150ms;
+  }
+
+  .stat-btn:hover {
+    border-color: var(--gold);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgb(200 152 31 / 14%);
+  }
+
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .pending-icon { background: rgb(200 152 31 / 14%); }
+  .live-icon    { background: rgb(39 67 113 / 12%); }
+  .fha-icon     { background: var(--color-sand); }
+  .add-icon     { background: rgb(200 152 31 / 14%); }
+  .other-icon   { background: rgb(96 112 137 / 14%); color: var(--color-brand-mid); }
+
+  .stat-data {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .stat-number {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  /* ── Tabs Navigation ── */
+  .dashboard-tabs {
+    display: flex;
+    gap: 6px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 150ms, border-color 150ms;
+  }
+
+  .tab-btn:hover {
+    color: var(--ink);
+  }
+
+  .tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--gold);
+  }
+
+  .tab-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-border);
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .tab-btn.active .tab-badge {
+    background: var(--gold);
+    color: var(--color-ivory);
+  }
+
+  /* ── Tab Panes ── */
+  .tab-pane {
+    display: none;
+  }
+
+  .tab-pane.active {
+    display: block;
+    animation: fadeIn 200ms ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .pane-header {
+    margin-bottom: 24px;
+  }
+
+  .pane-header h2 {
+    margin: 0 0 4px;
+    font-family: Georgia, serif;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+  }
+
+  .pane-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-pending  { background: rgb(200 152 31 / 16%); color: var(--color-ink); }
+  .badge-fha      { background: rgb(208 188 137 / 40%); color: var(--color-ink); }
+  .badge-approved { background: rgb(39 67 113 / 14%); color: var(--color-brand-deep); }
+  .badge-purpose  { background: rgb(96 112 137 / 12%); color: var(--color-ink); }
+
+  /* ── Empty Box ── */
+  .empty-box {
+    padding: 56px 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card-bg);
+    text-align: center;
+  }
+
+  .empty-symbol {
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+
+  .empty-box h3 {
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+  }
+
+  .empty-box p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* ── Submissions Grid (Tab 1) ── */
+  .submissions-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .submission-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: 0 2px 8px rgb(29 28 26 / 3%);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .card-titles h3 {
+    margin: 8px 0 6px;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+
+  .card-geo {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .card-price-badge {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgb(200 152 31 / 12%);
+    border: 1px solid var(--color-sand);
+    color: var(--color-ink);
+    font-weight: 700;
+    font-size: 1.1rem;
+    white-space: nowrap;
+  }
+
+  /* Photos Gallery Strip */
+  .property-gallery-strip {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .gallery-photo-link {
+    flex-shrink: 0;
+    display: block;
+    width: 130px;
+    height: 95px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 150ms, box-shadow 150ms;
+  }
+
+  .gallery-photo-link:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgb(29 28 26 / 12%);
+  }
+
+  .gallery-photo-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery-photo-fallback {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-size: 0.75rem;
+  }
+
+  .gallery-photo-fallback[hidden],
+  .pub-no-photo[hidden] {
+    display: none;
+  }
+
+  /* Specs Bar */
+  .specs-bar {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    padding: 16px;
+    background: var(--color-ivory);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    border: 1px solid var(--color-border);
+  }
+
+  .spec-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .spec-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .spec-cell strong {
+    font-size: 0.88rem;
+  }
+
+  .desc-box, .features-wrap {
+    margin-bottom: 18px;
+  }
+
+  .desc-box h4, .features-wrap h4 {
+    margin: 0 0 6px;
+    font-size: 0.88rem;
+    color: var(--ink);
+  }
+
+  .desc-box p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    white-space: pre-line;
+  }
+
+  .tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .feature-tag {
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgb(208 188 137 / 28%);
+    font-size: 0.78rem;
+    color: var(--color-muted);
+  }
+
+  /* Submitter Contact Box */
+  .contact-box {
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: var(--color-ivory);
+    border: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+
+  .contact-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .contact-data-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 0.88rem;
+  }
+
+  .tel-link, .mail-link {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  /* Review Memo Input */
+  .review-comment-wrap {
+    margin-bottom: 18px;
+  }
+
+  .review-comment-wrap label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .review-notes-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  .review-notes-input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  /* Action Buttons */
+  .card-actions-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-approve {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-approve:hover {
+    background: var(--color-brand-deep);
+  }
+
+  .btn-reject {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 18px;
+    border: 1px solid var(--color-sand);
+    border-radius: 6px;
+    background: var(--color-ivory);
+    color: var(--red);
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-reject:hover {
+    background: rgb(200 152 31 / 12%);
+  }
+
+  .btn-edit-property {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--color-ivory);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.86rem;
+    text-decoration: none;
+    transition: background 150ms, border-color 150ms, color 150ms;
+  }
+
+  .btn-edit-property:hover {
+    background: rgb(208 188 137 / 18%);
+    border-color: var(--gold);
+    color: var(--color-brand);
+  }
+
+  /* ── Published Grid (Tab 2) ── */
+  .published-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+
+  .pub-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgb(29 28 26 / 3%);
+  }
+
+  .pub-media {
+    position: relative;
+    height: 190px;
+    background: var(--color-border);
+  }
+
+  .pub-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pub-no-photo {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-size: 0.82rem;
+  }
+
+  .pub-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .pub-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .pub-type-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .pub-type {
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pub-price {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .pub-title {
+    margin: 0 0 6px;
+    font-size: 1.08rem;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+  }
+
+  .pub-location {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .pub-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 16px;
+  }
+
+  .pub-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-pub-view {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--color-ivory);
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 150ms;
+  }
+
+  .btn-pub-view:hover {
+    background: rgb(208 188 137 / 30%);
+  }
+
+  .btn-pub-edit {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 150ms, border-color 150ms, color 150ms;
+  }
+
+  .btn-pub-edit:hover, .btn-other-edit:hover {
+    background: rgb(208 188 137 / 18%);
+    border-color: var(--gold);
+    color: var(--color-brand);
+  }
+
+  .btn-other-edit {
+    min-height: 36px;
+    padding: 7px 11px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--color-ivory);
+    color: var(--ink);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 150ms, border-color 150ms, color 150ms;
+  }
+
+  .btn-pub-unpublish, .btn-pub-delete {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-pub-unpublish {
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    color: var(--color-muted);
+  }
+
+  .btn-pub-unpublish:hover {
+    background: rgb(208 208 201 / 30%);
+    border-color: var(--color-gray);
+  }
+
+  .btn-pub-delete {
+    border: 1px solid var(--color-sand);
+    background: var(--color-ivory);
+    color: var(--red);
+  }
+
+  .btn-pub-delete:hover {
+    background: rgb(200 152 31 / 12%);
+  }
+
+  .other-listings-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+  }
+
+  .other-listings-table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .other-listings-table th,
+  .other-listings-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.84rem;
+    vertical-align: middle;
+  }
+
+  .other-listings-table th {
+    background: var(--color-ivory);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .other-listings-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .other-listings-table td:first-child strong,
+  .other-listings-table td:first-child span {
+    display: block;
+  }
+
+  .other-listings-table td:first-child strong {
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+
+  .other-listings-table td:first-child span {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  .status-label {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgb(208 188 137 / 28%);
+    color: var(--color-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  .status-rejected { background: rgb(200 152 31 / 12%); color: var(--color-brand-deep); }
+  .status-archived { background: rgb(96 112 137 / 14%); color: var(--color-brand-mid); }
+
+  .other-listing-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-other-publish,
+  .btn-other-delete {
+    min-height: 36px;
+    padding: 7px 11px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--color-ivory);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-other-publish { border-color: var(--color-slate); color: var(--color-brand); }
+  .btn-other-publish:hover { background: rgb(39 67 113 / 12%); }
+  .btn-other-delete { border-color: var(--color-sand); color: var(--color-brand-deep); }
+  .btn-other-delete:hover { background: rgb(200 152 31 / 12%); }
+
+  /* ── Creator Form (Tab 3) ── */
+  .creator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 960px;
+  }
+
+  .form-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 26px;
+  }
+
+  .form-box-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .f-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-ivory);
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .form-box-head h3 {
+    margin: 0 0 4px;
+    font-family: Georgia, serif;
+    font-size: 1.15rem;
+  }
+
+  .form-box-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .f-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .f-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .f-group.full-width {
+    grid-column: span 2;
+  }
+
+  .f-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .req {
+    color: var(--color-brand);
+  }
+
+  .creator-form input:not([type="radio"]):not(.sr-only),
+  .creator-form select,
+  .creator-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    background: var(--color-ivory);
+    transition: border-color 150ms;
+  }
+
+  .creator-form input:focus,
+  .creator-form select:focus,
+  .creator-form textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgb(1 49 109 / 12%);
+  }
+
+  .prefix-wrap {
+    position: relative;
+  }
+
+  .prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-gray);
+    pointer-events: none;
+  }
+
+  .input-with-prefix {
+    padding-left: 28px !important;
+  }
+
+  .char-bar {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--color-gray);
+    margin-top: 4px;
+  }
+
+  /* Drop target */
+  .drop-target {
+    border: 2px dashed var(--color-slate);
+    border-radius: 10px;
+    padding: 32px 20px;
+    text-align: center;
+    background: var(--color-ivory);
+    cursor: pointer;
+    transition: border-color 150ms, background 150ms;
+  }
+
+  .drop-target:hover, .drop-target.drag-over {
+    border-color: var(--gold);
+    background: rgb(200 152 31 / 12%);
+  }
+
+  .drop-content {
+    pointer-events: none;
+  }
+
+  .drop-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .drop-content p {
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+  }
+
+  .drop-content small {
+    color: var(--color-gray);
+    font-size: 0.78rem;
+  }
+
+  .preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .thumb-box {
+    position: relative;
+    width: 86px;
+    height: 86px;
+    border-radius: 7px;
+    overflow: visible;
+  }
+
+  .thumb-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+  }
+
+  .thumb-del {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--color-ivory);
+    border: 2px solid var(--color-ivory);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .thumb-del:hover {
+    background: var(--red);
+  }
+
+  /* URL Block */
+  .url-block {
+    margin-top: 18px;
+  }
+
+  .url-heading {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .url-slots-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .url-row input {
+    flex: 1;
+  }
+
+  .btn-remove-url {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-slate-blue);
+  }
+
+  .btn-remove-url:hover {
+    background: rgb(200 152 31 / 12%);
+    color: var(--color-brand-deep);
+  }
+
+  .btn-sub-action {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-sub-action:hover {
+    background: rgb(96 112 137 / 12%);
+  }
+
+  .counter-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .img-badge {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .warn-text {
+    font-size: 0.78rem;
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* Section 6: Publishing Choice */
+  .publish-choice-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .radio-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 150ms, background 150ms;
+  }
+
+  .radio-card:has(input:checked) {
+    border-color: var(--gold);
+    background: rgb(208 188 137 / 18%);
+  }
+
+  .radio-text strong {
+    display: block;
+    font-size: 0.92rem;
+    margin-bottom: 2px;
+  }
+
+  .radio-text span {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .contact-grid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 22px;
+  }
+
+  .creator-msg {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+  }
+
+  .creator-msg.msg-success {
+    background: rgb(39 67 113 / 12%);
+    border: 1px solid var(--color-slate);
+    color: var(--color-brand-deep);
+  }
+
+  .creator-msg.msg-error {
+    background: rgb(200 152 31 / 12%);
+    border: 1px solid var(--color-sand);
+    color: var(--color-brand-deep);
+  }
+
+  .btn-publish-submit {
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--color-ivory);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-publish-submit:hover:not(:disabled) {
+    background: var(--color-brand-deep);
+  }
+
+  .btn-publish-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  /* sr-only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1120px) {
+    .stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .published-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .specs-bar {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .btn-gold-action {
+      width: 100%;
+      justify-content: center;
+    }
+    .topbar-inner {
+      gap: 12px;
+    }
+    .topbar-actions {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .admin-pill {
+      font-size: 0.74rem;
+      padding: 4px 10px;
+    }
+    .card-top {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .card-price-badge {
+      align-self: flex-start;
+      font-size: 0.95rem;
+      padding: 6px 12px;
+    }
+    .card-actions-row {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-actions-row > * {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+      box-sizing: border-box;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .admin-content {
+      margin-top: 20px;
+      padding: 0 14px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .stats-grid > :nth-child(5) {
+      grid-column: span 2;
+    }
+    .stat-card {
+      padding: 8px 12px;
+      min-height: 52px;
+      gap: 8px;
+    }
+    .stat-icon {
+      width: 30px;
+      height: 30px;
+      font-size: 0.95rem;
+    }
+    .stat-number {
+      font-size: 1.05rem;
+    }
+    .published-grid {
+      grid-template-columns: 1fr;
+    }
+    .f-grid {
+      grid-template-columns: 1fr;
+    }
+    .f-group.full-width {
+      grid-column: span 1;
+    }
+    .publish-choice-row {
+      grid-template-columns: 1fr;
+    }
+    .specs-bar {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+    .submission-card {
+      padding: 18px 14px;
+    }
+    .form-box {
+      padding: 18px 14px;
+    }
+    .dashboard-tabs {
+      padding-bottom: 2px;
+      gap: 4px;
+    }
+    .tab-btn {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+    }
+    .pub-actions {
+      flex-wrap: wrap;
+    }
+    .pub-actions > * {
+      flex: 1 1 calc(50% - 6px);
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .btn-pub-view {
+      flex: 1 1 100%;
+    }
+  }
+
+  @media (max-width: 440px) {
+    .specs-bar {
+      grid-template-columns: 1fr;
+    }
+    .stat-label {
+      font-size: 0.68rem;
+    }
+  }
+</style>
+
+<script>
+  // ── Logout logic ──
+  const logoutBtn = document.querySelector("#logout-button");
+  logoutBtn?.addEventListener("click", async () => {
+    logoutBtn.disabled = true;
+    logoutBtn.textContent = "Logging out...";
+    try {
+      const res = await fetch("/api/admin/logout", { method: "POST" });
+      if (!res.ok) throw new Error("Logout failed");
+      window.location.assign("/admin/login/");
+    } catch (err) {
+      alert("Unable to log out. Please try again.");
+      logoutBtn.disabled = false;
+      logoutBtn.textContent = "Log out";
+    }
+  });
+
+  // ── Tabs Switching ──
+  const tabBtns = document.querySelectorAll<HTMLButtonElement>(".tab-btn");
+  const tabPanes = document.querySelectorAll<HTMLElement>(".tab-pane");
+
+  function switchTab(tabId) {
+    tabBtns.forEach((btn) => {
+      const isActive = btn.dataset.tab === tabId;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", String(isActive));
+      btn.tabIndex = isActive ? 0 : -1;
+    });
+    tabPanes.forEach((pane) => {
+      pane.classList.toggle("active", pane.id === `tab-${tabId}`);
+    });
+    // Sync URL hash
+    history.replaceState(null, "", `#${tabId}`);
+  }
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+
+  document.querySelectorAll("[data-tab-target]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      switchTab(trigger.dataset.tabTarget);
+    });
+  });
+
+  document.querySelector("#quick-create-btn")?.addEventListener("click", () => {
+    switchTab("create");
+    document.querySelector("#c-title")?.focus();
+  });
+
+  // Check URL hash on page load
+  const currentHash = window.location.hash.replace("#", "");
+  if (["pending", "published", "other", "create"].includes(currentHash)) {
+    switchTab(currentHash);
+  }
+
+  tabBtns.forEach((btn, index) => {
+    btn.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (index + direction + tabBtns.length) % tabBtns.length;
+      const nextButton = tabBtns[nextIndex];
+      switchTab(nextButton.dataset.tab);
+      nextButton.focus();
+    });
+  });
+
+  // ── Actions on Pending Submissions (Approve / Reject) ──
+  document.querySelectorAll(".submission-card").forEach((card) => {
+    const propertyId = card.dataset.id;
+    const notesInput = card.querySelector(".review-notes-input");
+    const approveBtn = card.querySelector(".btn-approve");
+    const rejectBtn  = card.querySelector(".btn-reject");
+
+    async function handleReview(action) {
+      const promptText =
+        action === "publish"
+          ? "Approve this property and publish it live on the public website?"
+          : "Reject this property submission?";
+
+      if (!window.confirm(promptText)) return;
+
+      if (approveBtn) approveBtn.disabled = true;
+      if (rejectBtn)  rejectBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/review`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            notes: notesInput?.value?.trim() || "",
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.message || data.error || "Action failed.");
+        }
+
+        // Animate out card
+        card.style.transition = "opacity 200ms ease, transform 200ms ease";
+        card.style.opacity = "0";
+        card.style.transform = "scale(0.97)";
+        setTimeout(() => window.location.reload(), 300);
+      } catch (err) {
+        alert(err.message || "Failed to perform review action.");
+        if (approveBtn) approveBtn.disabled = false;
+        if (rejectBtn)  rejectBtn.disabled = false;
+      }
+    }
+
+    approveBtn?.addEventListener("click", () => handleReview("publish"));
+    rejectBtn?.addEventListener("click", () => handleReview("reject"));
+  });
+
+  document.querySelectorAll(".gallery-photo-link img, .pub-media img").forEach((image) => {
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const showFallback = () => {
+      image.hidden = true;
+      const fallbackClass = image.closest(".gallery-photo-link")
+        ? ".gallery-photo-fallback"
+        : ".pub-no-photo";
+      const fallback = image.parentElement?.querySelector(fallbackClass);
+      if (fallback instanceof HTMLElement) fallback.hidden = false;
+    };
+
+    image.addEventListener("error", showFallback, { once: true });
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+
+  // ── Actions on Published Properties (Unpublish / Delete) ──
+  document.querySelectorAll(".pub-card").forEach((card) => {
+    const propertyId = card.dataset.id;
+    const unpublishBtn = card.querySelector(".btn-pub-unpublish");
+    const deleteBtn = card.querySelector(".btn-pub-delete");
+
+    async function handleStatus(action) {
+      const confirmText =
+        action === "delete"
+          ? "Are you sure you want to PERMANENTLY delete this property? This cannot be undone."
+          : "Unpublish this property? It will be removed from the public website and saved as a draft.";
+
+      if (!window.confirm(confirmText)) return;
+
+      if (unpublishBtn) unpublishBtn.disabled = true;
+      if (deleteBtn) deleteBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to update property status.");
+
+        card.style.transition = "opacity 200ms ease, transform 200ms ease";
+        card.style.opacity = "0";
+        card.style.transform = "scale(0.97)";
+        setTimeout(() => window.location.reload(), 300);
+      } catch (err) {
+        alert(err.message || "Action failed.");
+        if (unpublishBtn) unpublishBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+      }
+    }
+
+    unpublishBtn?.addEventListener("click", () => handleStatus("unpublish"));
+    deleteBtn?.addEventListener("click", () => handleStatus("delete"));
+  });
+
+  document.querySelectorAll(".other-listing-row").forEach((candidate) => {
+    if (!(candidate instanceof HTMLTableRowElement)) return;
+    const row = candidate;
+    const propertyId = row.dataset.id;
+    const publishBtn = row.querySelector(".btn-other-publish");
+    const deleteBtn = row.querySelector(".btn-other-delete");
+
+    if (!(publishBtn instanceof HTMLButtonElement) || !(deleteBtn instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    async function handleOtherListingAction(action: "publish" | "delete") {
+      const message = action === "delete"
+        ? "Permanently delete this property? This cannot be undone."
+        : "Publish this property on the public website?";
+      if (!window.confirm(message)) return;
+
+      publishBtn.disabled = true;
+      deleteBtn.disabled = true;
+
+      try {
+        const response = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result.error || "Could not update this listing.");
+        }
+
+        window.location.reload();
+      } catch (error) {
+        alert(error instanceof Error ? error.message : "Could not update this listing.");
+        publishBtn.disabled = false;
+        deleteBtn.disabled = false;
+      }
+    }
+
+    publishBtn?.addEventListener("click", () => handleOtherListingAction("publish"));
+    deleteBtn?.addEventListener("click", () => handleOtherListingAction("delete"));
+  });
+
+  // ── Admin Direct Property Creator Form (Tab 3) ──
+  const MAX_IMAGES = 5;
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+  const createForm = document.querySelector("#admin-create-form");
+  const createSubmitBtn = document.querySelector("#create-submit-btn");
+  const createMsg = document.querySelector("#create-message");
+  const adminFileInput = document.querySelector("#admin-file-input");
+  const adminDropZone = document.querySelector("#admin-drop-zone");
+  const adminPreviewStrip = document.querySelector("#admin-preview-strip");
+  const adminUrlSlots = document.querySelector("#admin-url-slots");
+  const adminAddUrlBtn = document.querySelector("#admin-add-url");
+  const adminImgCounter = document.querySelector("#admin-img-counter");
+  const adminLimitWarn = document.querySelector("#admin-limit-warn");
+  const adminDesc = document.querySelector("#c-desc");
+  const adminDescCount = document.querySelector("#admin-desc-count");
+
+  let adminDt = new DataTransfer();
+
+  // Char count
+  adminDesc?.addEventListener("input", () => {
+    if (adminDescCount) adminDescCount.textContent = adminDesc.value.length;
+  });
+
+  function countAdminImages() {
+    const urlCount = adminUrlSlots?.querySelectorAll("input[type=url]").length || 0;
+    return adminDt.files.length + urlCount;
+  }
+
+  function updateAdminImageUI() {
+    const total = countAdminImages();
+    const atLimit = total >= MAX_IMAGES;
+
+    if (adminImgCounter) {
+      adminImgCounter.textContent = `${total} / ${MAX_IMAGES} image${total !== 1 ? "s" : ""}`;
+    }
+    if (adminLimitWarn) adminLimitWarn.hidden = !atLimit;
+    if (adminAddUrlBtn) adminAddUrlBtn.disabled = atLimit;
+
+    if (adminDropZone) {
+      adminDropZone.style.opacity = atLimit ? "0.45" : "";
+      adminDropZone.style.pointerEvents = atLimit ? "none" : "";
+    }
+  }
+
+  function renderAdminThumbnails() {
+    if (!adminPreviewStrip) return;
+    adminPreviewStrip.innerHTML = "";
+
+    Array.from(adminDt.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const box = document.createElement("div");
+        box.className = "thumb-box";
+
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.alt = file.name;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "thumb-del";
+        del.textContent = "×";
+        del.title = `Remove ${file.name}`;
+        del.addEventListener("click", () => {
+          const freshDt = new DataTransfer();
+          Array.from(adminDt.files).forEach((f, i) => {
+            if (i !== index) freshDt.items.add(f);
+          });
+          adminDt = freshDt;
+          renderAdminThumbnails();
+          updateAdminImageUI();
+        });
+
+        box.appendChild(img);
+        box.appendChild(del);
+        adminPreviewStrip.appendChild(box);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    updateAdminImageUI();
+  }
+
+  function addAdminFiles(files) {
+    if (createMsg) createMsg.hidden = true;
+    const urlCount = adminUrlSlots?.querySelectorAll("input[type=url]").length || 0;
+    const remaining = MAX_IMAGES - adminDt.files.length - urlCount;
+    const incoming = Array.from(files);
+    const invalidFiles = incoming.filter(
+      (file) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE,
+    );
+    const validFiles = incoming.filter(
+      (file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE,
+    );
+    const uniqueFiles = validFiles.filter(
+      (file) =>
+        !Array.from(adminDt.files).some(
+          (existing) => existing.name === file.name && existing.size === file.size,
+        ),
+    );
+
+    if (invalidFiles.length) {
+      showAdminImageError("Photos must be JPEG, PNG, or WebP files no larger than 5 MB each.");
+    }
+    if (uniqueFiles.length > remaining) {
+      showAdminImageError(`Only ${Math.max(remaining, 0)} more photos can be added. The limit is ${MAX_IMAGES} total.`);
+    }
+
+    uniqueFiles.slice(0, Math.max(remaining, 0)).forEach((file) => adminDt.items.add(file));
+    adminFileInput.value = "";
+    renderAdminThumbnails();
+  }
+
+  function showAdminImageError(message) {
+    if (!createMsg) return;
+    createMsg.hidden = false;
+    createMsg.className = "creator-msg msg-error";
+    createMsg.textContent = message;
+  }
+
+  adminFileInput?.addEventListener("change", () => addAdminFiles(adminFileInput.files));
+
+  adminDropZone?.addEventListener("click", () => adminFileInput?.click());
+  adminDropZone?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      adminFileInput?.click();
+    }
+  });
+
+  ["dragenter", "dragover"].forEach((evt) => {
+    adminDropZone?.addEventListener(evt, (e) => {
+      e.preventDefault();
+      adminDropZone.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach((evt) => {
+    adminDropZone?.addEventListener(evt, (e) => {
+      e.preventDefault();
+      adminDropZone.classList.remove("drag-over");
+    });
+  });
+
+  adminDropZone?.addEventListener("drop", (e) => {
+    const files = e.dataTransfer?.files;
+    if (files?.length) addAdminFiles(files);
+  });
+
+  // URL Slots
+  function addAdminUrlSlot() {
+    if (!adminUrlSlots || countAdminImages() >= MAX_IMAGES) return;
+
+    const row = document.createElement("div");
+    row.className = "url-row";
+
+    const input = document.createElement("input");
+    input.type = "url";
+    input.name = "imageUrls";
+    input.placeholder = "https://example.com/property-photo.jpg";
+    input.required = true;
+    input.pattern = "https://.+";
+    input.title = "Enter a direct HTTPS image URL.";
+
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "btn-remove-url";
+    rm.textContent = "×";
+    rm.title = "Remove URL";
+    rm.addEventListener("click", () => {
+      row.remove();
+      updateAdminImageUI();
+    });
+
+    row.appendChild(input);
+    row.appendChild(rm);
+    adminUrlSlots.appendChild(row);
+    input.focus();
+    updateAdminImageUI();
+  }
+
+  adminAddUrlBtn?.addEventListener("click", addAdminUrlSlot);
+
+  // Form Submission
+  createForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!createForm.reportValidity()) return;
+
+    if (countAdminImages() > MAX_IMAGES) {
+      alert(`You can attach a maximum of ${MAX_IMAGES} images.`);
+      return;
+    }
+
+    createSubmitBtn.disabled = true;
+    const btnLbl = createSubmitBtn.querySelector(".btn-lbl");
+    const btnSpin = createSubmitBtn.querySelector(".btn-spin");
+    if (btnLbl) btnLbl.hidden = true;
+    if (btnSpin) btnSpin.hidden = false;
+
+    if (createMsg) createMsg.hidden = true;
+
+    try {
+      const fd = new FormData(createForm);
+      fd.delete("images");
+      Array.from(adminDt.files).forEach((f) => fd.append("images", f));
+
+      const res = await fetch("/api/admin/properties/create", {
+        method: "POST",
+        body: fd,
+      });
+
+      const data = await res.json();
+
+      if (createMsg) {
+        createMsg.hidden = false;
+        createMsg.className = `creator-msg ${res.ok && data.success ? "msg-success" : "msg-error"}`;
+        createMsg.textContent = data.message || "Failed to create property.";
+      }
+
+      if (res.ok && data.success) {
+        createForm.reset();
+        adminDt = new DataTransfer();
+        if (adminPreviewStrip) adminPreviewStrip.innerHTML = "";
+        if (adminUrlSlots) adminUrlSlots.innerHTML = "";
+        if (adminDescCount) adminDescCount.textContent = "0";
+        updateAdminImageUI();
+
+        // Reload to published tab after 1.5s so admin can see their live listing
+        setTimeout(() => {
+          window.location.hash = "published";
+          window.location.reload();
+        }, 1200);
+      }
+    } catch (err) {
+      if (createMsg) {
+        createMsg.hidden = false;
+        createMsg.className = "creator-msg msg-error";
+        createMsg.textContent = "Network error. Please try again.";
+      }
+    } finally {
+      createSubmitBtn.disabled = false;
+      if (btnLbl) btnLbl.hidden = false;
+      if (btnSpin) btnSpin.hidden = true;
+    }
+  });
+
+  updateAdminImageUI();
+</script>

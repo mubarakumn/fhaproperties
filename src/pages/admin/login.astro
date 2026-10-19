@@ -1,0 +1,259 @@
+
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { verifyAdminSession } from "../../lib/adminAuth.js";
+
+export const prerender = false;
+
+const existingToken = Astro.cookies.get("fha_admin_session")?.value;
+
+if (await verifyAdminSession(existingToken)) {
+  return Astro.redirect("/admin/");
+}
+---
+
+<BaseLayout
+  title="Admin Login | FHA Properties Management"
+  description="Secure administration login for FHA Properties Management."
+>
+  <main class="login-page">
+    <section class="login-card">
+      <a class="brand" href="/" aria-label="FHA Properties Management home">
+        <img src="/fha_logo.png" alt="" width="180" height="120" />
+      </a>
+
+      <p class="eyebrow">ADMINISTRATION</p>
+      <h1>Welcome back</h1>
+      <p class="intro">Sign in to manage property submissions.</p>
+
+      <form id="admin-login-form">
+        <div class="field">
+          <label for="username">Username</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autocomplete="username"
+            required
+            maxlength="100"
+          />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            maxlength="1024"
+          />
+        </div>
+
+        <p id="login-message" role="alert" aria-live="polite" hidden></p>
+
+        <button id="login-button" type="submit">Sign in</button>
+      </form>
+
+      <a class="back-link" href="/">← Back to website</a>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector<HTMLFormElement>("#admin-login-form");
+    const button = document.querySelector<HTMLButtonElement>("#login-button");
+    const message = document.querySelector<HTMLParagraphElement>("#login-message");
+
+    if (!form || !button || !message) {
+      throw new Error("Admin login form is unavailable.");
+    }
+
+    if (new URLSearchParams(window.location.search).get("reset") === "success") {
+      message.textContent = "Password updated. Sign in with your new password.";
+      message.style.color = "#274371";
+      message.hidden = false;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!form.reportValidity()) return;
+
+      button.disabled = true;
+      button.textContent = "Signing in...";
+      message.style.color = "";
+      message.hidden = true;
+      message.textContent = "";
+
+      try {
+        const response = await fetch("/api/admin/login", {
+          method: "POST",
+          body: new FormData(form),
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result.message || "Unable to sign in.");
+        }
+
+        window.location.assign(result.redirect || "/admin/");
+      } catch (error) {
+        message.textContent =
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.";
+        message.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.textContent = "Sign in";
+      }
+    });
+  </script>
+
+  <style>
+    .login-page {
+      display: grid;
+      min-height: 75vh;
+      place-items: center;
+      padding: 48px 20px;
+      background: var(--color-ivory);
+      color: var(--color-ink);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 36px;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-ivory);
+      box-shadow: 0 12px 40px rgb(29 28 26 / 5%);
+    }
+
+    .brand {
+      display: inline-flex;
+      width: 180px;
+      margin-bottom: 38px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--color-brand);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.045em;
+    }
+
+    .intro {
+      margin: 12px 0 28px;
+      color: var(--color-slate-blue);
+      font-size: 0.93rem;
+      line-height: 1.6;
+    }
+
+    form {
+      display: grid;
+      gap: 20px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      background: var(--color-ivory);
+      color: var(--color-ink);
+      font: inherit;
+      font-size: 0.95rem;
+    }
+
+    input:focus {
+      border-color: var(--color-brand);
+      outline: 2px solid rgb(1 49 109 / 18%);
+    }
+
+    #login-button {
+      min-height: 46px;
+      margin-top: 4px;
+      border: 0;
+      border-radius: 5px;
+      background: var(--color-brand);
+      color: var(--color-ivory);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #login-button:hover {
+      background: var(--color-brand-deep);
+    }
+
+    #login-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    #login-message {
+      margin: 0;
+      color: var(--color-brand-deep);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 26px;
+      color: var(--color-slate-blue);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      color: var(--color-brand);
+    }
+
+    .reset-link {
+      display: inline-block;
+      margin: 26px 0 0 18px;
+      color: var(--color-slate-blue);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+
+    .reset-link:hover {
+      color: var(--color-brand);
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 26px 22px;
+      }
+    }
+  </style>
+</BaseLayout>

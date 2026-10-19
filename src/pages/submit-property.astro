@@ -1,0 +1,1685 @@
+
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<BaseLayout
+  title="Submit a Property | FHA Properties Management"
+  description="Submit your property for review by FHA Properties Management. We list homes, land, apartments and commercial properties across Nigeria."
+>
+  <Header />
+
+  <main class="submit-page">
+
+    <!-- ── Page hero ── -->
+    <div class="page-hero">
+      <div class="page-hero-inner container-wide">
+        <div class="hero-text">
+          <p class="eyebrow">PROPERTY SUBMISSION</p>
+          <h1>List your property<br />with <em>FHA.</em></h1>
+          <p class="hero-sub">
+            Fill in the details below and our team will review your listing
+            before it goes live on the FHA Properties Management platform.
+          </p>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item">
+            <span class="trust-icon" aria-hidden="true">✓</span>
+            <span>Free to submit</span>
+          </div>
+          <div class="trust-item">
+            <span class="trust-icon" aria-hidden="true">✓</span>
+            <span>Reviewed within 48 hrs</span>
+          </div>
+          <div class="trust-item">
+            <span class="trust-icon" aria-hidden="true">✓</span>
+            <span>Nationwide coverage</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Main layout ── -->
+    <div class="page-body container-wide">
+
+      <!-- ── Left: form ── -->
+      <div class="form-col">
+
+        <!-- Success screen (hidden by default) -->
+        <div id="success-screen" class="success-screen" hidden>
+          <div class="success-icon" aria-hidden="true">
+            <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
+              <circle cx="26" cy="26" r="25" stroke="#01316D" stroke-width="2"/>
+              <path d="M15 26.5l8 8 14-16" stroke="#01316D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2>Property submitted!</h2>
+          <p>
+            Thank you. Our team will review your listing and get back to you
+            within 48 hours. You'll be contacted on the details you provided.
+          </p>
+          <a href="/properties/" class="btn-primary">Browse properties</a>
+          <button id="submit-another" type="button" class="btn-ghost">Submit another property</button>
+        </div>
+
+        <!-- The form -->
+        <form id="property-form" class="submission-form" novalidate>
+
+          <!-- ── Section 1: Property details ── -->
+          <section class="form-section" id="section-property">
+            <div class="section-header">
+              <span class="section-number" aria-hidden="true">01</span>
+              <div>
+                <h2>Property details</h2>
+                <p class="section-desc">Tell us about the property you want to list.</p>
+              </div>
+            </div>
+
+            <div class="fields">
+
+              <div class="field-group">
+                <label for="f-title">
+                  Property title
+                  <span class="required" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="f-title"
+                  name="title"
+                  type="text"
+                  placeholder="e.g. Three-bedroom house in GRA, Lagos"
+                  minlength="5"
+                  maxlength="160"
+                  required
+                  autocomplete="off"
+                />
+                <p class="field-hint">Give a clear, descriptive title for your property.</p>
+              </div>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="f-type">
+                    Property type
+                    <span class="required" aria-hidden="true">*</span>
+                  </label>
+                  <div class="select-wrap">
+                    <select id="f-type" name="type" required>
+                      <option value="">Select type</option>
+                      <option value="House">House</option>
+                      <option value="Apartment">Apartment</option>
+                      <option value="Land">Land</option>
+                      <option value="Commercial">Commercial property</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="f-listing-type">
+                    Listing purpose
+                    <span class="required" aria-hidden="true">*</span>
+                  </label>
+                  <div class="select-wrap">
+                    <select id="f-listing-type" name="listingType" required>
+                      <option value="">Select purpose</option>
+                      <option value="Sale">For sale</option>
+                      <option value="Rent">For rent</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-divider"></div>
+              <p class="field-group-label">Location</p>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="f-state">
+                    State
+                    <span class="required" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="f-state"
+                    name="state"
+                    type="text"
+                    placeholder="e.g. Lagos"
+                    maxlength="80"
+                    required
+                  />
+                </div>
+
+                <div class="field-group">
+                  <label for="f-city">
+                    City or town
+                    <span class="required" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="f-city"
+                    name="city"
+                    type="text"
+                    placeholder="e.g. Ikeja"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="f-address">Street address or area</label>
+                <input
+                  id="f-address"
+                  name="address"
+                  type="text"
+                  placeholder="Neighbourhood, street or landmark (optional)"
+                  maxlength="250"
+                />
+              </div>
+
+              <div class="field-divider"></div>
+              <p class="field-group-label">Pricing</p>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="f-price">Price (₦)</label>
+                  <div class="input-prefix-wrap">
+                    <span class="input-prefix" aria-hidden="true">₦</span>
+                    <input
+                      id="f-price"
+                      name="priceAmount"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 25000000"
+                      class="has-prefix"
+                    />
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="f-price-label">Price note</label>
+                  <input
+                    id="f-price-label"
+                    name="priceLabel"
+                    type="text"
+                    maxlength="100"
+                    placeholder="e.g. Negotiable, per annum"
+                  />
+                </div>
+              </div>
+
+              <div class="field-divider"></div>
+              <p class="field-group-label">Property specs <span class="optional-tag">optional</span></p>
+
+              <div class="field-row field-row-3">
+                <div class="field-group">
+                  <label for="f-beds">Bedrooms</label>
+                  <input id="f-beds" name="bedrooms" type="number" min="0" max="100" step="1" placeholder="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="f-baths">Bathrooms</label>
+                  <input id="f-baths" name="bathrooms" type="number" min="0" max="100" step="1" placeholder="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="f-area">Size / area</label>
+                  <input id="f-area" name="area" type="text" maxlength="100" placeholder="e.g. 450 sqm" />
+                </div>
+              </div>
+
+              <div class="field-divider"></div>
+
+              <div class="field-group">
+                <label for="f-description">
+                  Property description
+                  <span class="required" aria-hidden="true">*</span>
+                </label>
+                <textarea
+                  id="f-description"
+                  name="description"
+                  rows="6"
+                  minlength="20"
+                  maxlength="5000"
+                  placeholder="Describe the property — its condition, key features, access, nearby amenities and anything else buyers or renters should know."
+                  required
+                ></textarea>
+                <div class="char-counter">
+                  <span id="desc-count">0</span> / 5000
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- ── Section 2: Images ── -->
+          <section class="form-section" id="section-images">
+            <div class="section-header">
+              <span class="section-number" aria-hidden="true">02</span>
+              <div>
+                <h2>Property images</h2>
+                <p class="section-desc">Add up to 5 photos — upload files or paste image links.</p>
+              </div>
+            </div>
+
+            <div class="fields">
+
+              <!-- Drop zone -->
+              <div
+                id="drop-zone"
+                class="drop-zone"
+                role="button"
+                tabindex="0"
+                aria-label="Upload property photos"
+              >
+                <input
+                  id="images"
+                  name="images"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  class="sr-only"
+                  aria-hidden="true"
+                  tabindex="-1"
+                />
+                <div class="drop-zone-inner">
+                  <div class="drop-icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </div>
+                  <p class="drop-primary">Drag photos here, or <span class="drop-link">browse files</span></p>
+                  <p class="drop-secondary">JPEG, PNG or WebP · max 5 MB each · up to 5 images</p>
+                </div>
+              </div>
+
+              <!-- File thumbnails -->
+              <div id="file-preview" class="img-preview-strip" aria-live="polite" aria-label="Selected photos"></div>
+
+              <!-- URL inputs -->
+              <div class="url-section">
+                <p class="url-section-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Or paste image URLs
+                </p>
+                <div id="url-slots" class="url-slot-list"></div>
+                <button id="add-url-btn" type="button" class="add-url-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add image URL
+                </button>
+              </div>
+
+              <!-- Limit / counter row -->
+              <div class="img-status-row">
+                <span id="img-counter" class="img-counter">0 / 5 images</span>
+                <span id="img-limit-msg" class="img-limit-msg" hidden>Limit reached — remove an image to add more.</span>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- ── Section 3: Contact ── -->
+          <section class="form-section" id="section-contact">
+            <div class="section-header">
+              <span class="section-number" aria-hidden="true">03</span>
+              <div>
+                <h2>Your contact details</h2>
+                <p class="section-desc">We'll use these to verify your submission and reach you.</p>
+              </div>
+            </div>
+
+            <div class="fields">
+
+              <div class="field-group">
+                <label for="f-name">
+                  Full name
+                  <span class="required" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="f-name"
+                  name="submitterName"
+                  type="text"
+                  minlength="2"
+                  maxlength="120"
+                  autocomplete="name"
+                  placeholder="Your full name"
+                  required
+                />
+              </div>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="f-phone">
+                    Phone number
+                    <span class="required" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="f-phone"
+                    name="submitterPhone"
+                    type="tel"
+                    minlength="7"
+                    maxlength="30"
+                    autocomplete="tel"
+                    placeholder="e.g. 08012345678"
+                    required
+                  />
+                </div>
+
+                <div class="field-group">
+                  <label for="f-email">Email address</label>
+                  <input
+                    id="f-email"
+                    name="submitterEmail"
+                    type="email"
+                    maxlength="254"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Honeypot -->
+          <div class="honeypot" aria-hidden="true">
+            <label>
+              Leave this field empty
+              <input type="text" name="website" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
+
+          <!-- Form footer -->
+          <div class="form-footer">
+            <p class="privacy-note">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Submission does not guarantee publication. FHA will review before
+              deciding whether to list your property.
+            </p>
+
+            <div id="form-message" class="form-message" role="alert" aria-live="polite" hidden></div>
+
+            <button id="submit-button" type="submit" class="submit-btn">
+              <span class="btn-label">Submit property for review</span>
+              <span class="btn-spinner" aria-hidden="true" hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ── Right: sticky sidebar ── -->
+      <aside class="sidebar">
+        <div class="sidebar-sticky">
+
+          <div class="sidebar-card process-card">
+            <h3>How it works</h3>
+            <ol class="process-steps">
+              <li>
+                <span class="step-dot" aria-hidden="true">1</span>
+                <div>
+                  <strong>Fill in your details</strong>
+                  <p>Tell us about the property and how to reach you.</p>
+                </div>
+              </li>
+              <li>
+                <span class="step-dot" aria-hidden="true">2</span>
+                <div>
+                  <strong>We review your listing</strong>
+                  <p>Our team verifies the information within 48 hours.</p>
+                </div>
+              </li>
+              <li>
+                <span class="step-dot" aria-hidden="true">3</span>
+                <div>
+                  <strong>Your property goes live</strong>
+                  <p>Approved listings appear on the public website immediately.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="sidebar-card tips-card">
+            <h3>Tips for a great listing</h3>
+            <ul class="tips-list">
+              <li>Use a clear, specific title — include the area and key feature.</li>
+              <li>Upload at least one photo — listings with images get 3× more views.</li>
+              <li>Set a realistic price or note "Negotiable" if flexible.</li>
+              <li>Describe the property thoroughly — size, condition, facilities.</li>
+              <li>Double-check your phone number — this is how we'll contact you.</li>
+            </ul>
+          </div>
+
+          <div class="sidebar-card contact-card">
+            <p class="contact-label">Need Assistance?</p>
+            <p>Our team is available to help with submissions:</p>
+            <div class="sidebar-contact-lines">
+              <a href="tel:+2348023456789" class="sidebar-phone-link">
+                📞 +234 803 914 5619
+              </a>
+              <a href="tel:+2348134567890" class="sidebar-phone-link">
+                📞 +234 906 671 5348
+              </a>
+              <a
+                href="https://wa.me/2348023456789?text=Hello%20FHA%20Properties%20Management%2C%20I%20have%20a%20question%20about%20submitting%20a%20property."
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sidebar-wa-link"
+              >
+                💬 Chat on WhatsApp
+              </a>
+              <a href="mailto:fehintolahayodeji@gmail.com" class="contact-email">
+                fehintolahayodeji@gmail.com
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* ── Layout tokens ── */
+  .container-wide {
+    width: min(1200px, calc(100% - 48px));
+    margin-inline: auto;
+  }
+
+  /* ── Page hero ── */
+  .page-hero {
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    padding: 64px 0 56px;
+    overflow: hidden;
+  }
+
+  .page-hero-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--color-sand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .page-hero h1 {
+    margin: 0 0 14px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.6rem, 5vw, 4.2rem);
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 1.02;
+    color: var(--color-ivory);
+  }
+
+  .page-hero h1 em {
+    color: var(--color-gold);
+    font-style: normal;
+  }
+
+  .hero-sub {
+    max-width: 480px;
+    margin: 0;
+    color: var(--color-slate);
+    font-size: 0.97rem;
+    line-height: 1.85;
+  }
+
+  .hero-trust {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding-bottom: 6px;
+    flex-shrink: 0;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-slate);
+    font-size: 0.86rem;
+  }
+
+  .trust-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgb(200 152 31 / 22%);
+    color: var(--color-brand-deep);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── Page body ── */
+  .page-body {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+    gap: 40px;
+    padding-top: 52px;
+    padding-bottom: 100px;
+  }
+
+  /* ── Success screen ── */
+  .success-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 64px 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-ivory);
+  }
+
+  .success-icon {
+    margin-bottom: 24px;
+  }
+
+  .success-screen h2 {
+    margin: 0 0 14px;
+    font-family: Georgia, serif;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+  }
+
+  .success-screen > p {
+    max-width: 400px;
+    margin: 0 0 32px;
+    color: var(--color-slate-blue);
+    line-height: 1.8;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    padding: 0 28px;
+    border-radius: 7px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-brand-deep);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-gray);
+    font: inherit;
+    font-size: 0.86rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: color 150ms, text-decoration-color 150ms;
+  }
+
+  .btn-ghost:hover {
+    color: var(--color-brand);
+    text-decoration-color: var(--color-border);
+  }
+
+  /* ── Form ── */
+  .submission-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-section {
+    padding: clamp(28px, 4vw, 42px);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-ivory);
+    margin-bottom: 20px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 30px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .section-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-ivory);
+    border: 1px solid var(--color-border);
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .section-header h2 {
+    margin: 0 0 5px;
+    font-family: Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+  }
+
+  .section-desc {
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  /* ── Fields ── */
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .field-group label {
+    color: var(--color-ink);
+    font-size: 0.87rem;
+    font-weight: 600;
+  }
+
+  .required {
+    color: var(--color-brand);
+    margin-left: 2px;
+  }
+
+  .field-hint {
+    margin: 0;
+    color: var(--color-gray);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-row-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .field-group-label {
+    margin: 0;
+    color: var(--color-brand);
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .optional-tag {
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: 30px;
+    background: rgb(208 188 137 / 30%);
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    vertical-align: middle;
+  }
+
+  .field-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 4px 0;
+  }
+
+  /* ── Inputs ── */
+  .submission-form input:not(.sr-only),
+  .submission-form select,
+  .submission-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: border-color 160ms, box-shadow 160ms;
+    appearance: none;
+  }
+
+  .submission-form input:not(.sr-only):focus,
+  .submission-form select:focus,
+  .submission-form textarea:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgb(1 49 109 / 12%);
+  }
+
+  .submission-form input:not(.sr-only):valid:not(:placeholder-shown),
+  .submission-form select:valid:not([value=""]),
+  .submission-form textarea:valid:not(:placeholder-shown) {
+    border-color: var(--color-slate);
+  }
+
+  .submission-form textarea {
+    resize: vertical;
+    line-height: 1.7;
+    min-height: 140px;
+  }
+
+  /* Select custom arrow */
+  .select-wrap {
+    position: relative;
+  }
+
+  .select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--color-slate-blue);
+    pointer-events: none;
+  }
+
+  .select-wrap select {
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  /* Price prefix */
+  .input-prefix-wrap {
+    position: relative;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-slate-blue);
+    font-size: 0.9rem;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .has-prefix {
+    padding-left: 28px !important;
+  }
+
+  /* Char counter */
+  .char-counter {
+    text-align: right;
+    color: var(--color-gray);
+    font-size: 0.78rem;
+    margin-top: -4px;
+  }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed var(--color-slate);
+    border-radius: 10px;
+    background: var(--color-ivory);
+    padding: 36px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 180ms, background 180ms;
+  }
+
+  .drop-zone:hover,
+  .drop-zone.drag-over {
+    border-color: var(--color-brand);
+    background: rgb(200 152 31 / 12%);
+  }
+
+  .drop-zone:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  .drop-zone-inner {
+    pointer-events: none;
+  }
+
+  .drop-icon {
+    color: var(--color-slate);
+    margin-bottom: 12px;
+  }
+
+  .drop-zone:hover .drop-icon,
+  .drop-zone.drag-over .drop-icon {
+    color: var(--color-gold);
+  }
+
+  .drop-primary {
+    margin: 0 0 6px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .drop-link {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .drop-secondary {
+    margin: 0;
+    color: var(--color-gray);
+    font-size: 0.8rem;
+  }
+
+  /* ── File preview ── */
+  .img-preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .img-thumb {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: visible;
+    animation: thumb-in 200ms ease;
+  }
+
+  @keyframes thumb-in {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .img-thumb img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border);
+  }
+
+  .img-thumb-remove {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--color-ivory);
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms;
+    box-shadow: 0 1px 4px rgb(29 28 26 / 20%);
+  }
+
+  .img-thumb-remove:hover {
+    background: var(--color-brand-deep);
+  }
+
+  /* ── URL section ── */
+  .url-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .url-section-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.83rem;
+    font-weight: 600;
+  }
+
+  .url-slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .url-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: thumb-in 180ms ease;
+  }
+
+  .url-slot input[type="url"] {
+    flex: 1;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 10px 13px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 0.88rem;
+    transition: border-color 160ms, box-shadow 160ms;
+  }
+
+  .url-slot input[type="url"]:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgb(1 49 109 / 12%);
+  }
+
+  .url-slot-remove {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-ivory);
+    color: var(--color-gray);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms, color 150ms;
+  }
+
+  .url-slot-remove:hover {
+    background: rgb(200 152 31 / 12%);
+    border-color: var(--color-sand);
+    color: var(--color-brand-deep);
+  }
+
+  .add-url-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-ivory);
+    color: var(--color-muted);
+    font: inherit;
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 150ms, background 150ms, color 150ms;
+  }
+
+  .add-url-btn:hover {
+    border-color: var(--color-brand);
+    background: rgb(200 152 31 / 12%);
+    color: var(--color-brand);
+  }
+
+  .add-url-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── Image status row ── */
+  .img-status-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .img-counter {
+    color: var(--color-gray);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .img-limit-msg {
+    color: var(--color-brand-deep);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  /* ── Form footer ── */
+  .form-footer {
+    padding: clamp(24px, 4vw, 36px);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-ivory);
+  }
+
+  .privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 20px;
+    color: var(--color-gray);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .privacy-note svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: var(--color-gray);
+  }
+
+  .form-message {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .form-message.is-success {
+    border-color: var(--color-slate);
+    background: rgb(39 67 113 / 12%);
+    color: var(--color-brand-deep);
+  }
+
+  .form-message.is-error {
+    border-color: var(--color-sand);
+    background: rgb(200 152 31 / 12%);
+    color: var(--color-brand-deep);
+  }
+
+  .submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 54px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font: inherit;
+    font-size: 0.97rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 160ms;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: var(--color-brand-deep);
+  }
+
+  .submit-btn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .btn-spinner svg {
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Sidebar ── */
+  .sidebar-sticky {
+    position: sticky;
+    top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .sidebar-card {
+    padding: 26px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-ivory);
+  }
+
+  .sidebar-card h3 {
+    margin: 0 0 18px;
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  /* Process steps */
+  .process-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .process-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+  }
+
+  .step-dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-ivory);
+    border: 1px solid var(--color-border);
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .process-steps strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .process-steps p {
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.81rem;
+    line-height: 1.55;
+  }
+
+  /* Tips */
+  .tips-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .tips-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--color-muted);
+    font-size: 0.83rem;
+    line-height: 1.55;
+  }
+
+  .tips-list li::before {
+    content: "→";
+    color: var(--color-brand);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Contact */
+  .contact-card {
+    background: var(--color-brand);
+    border-color: transparent;
+  }
+
+  .contact-label {
+    margin: 0 0 4px;
+    color: var(--color-slate-blue);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .contact-card > p:not(.contact-label) {
+    margin: 0 0 12px;
+    color: var(--color-slate);
+    font-size: 0.86rem;
+  }
+
+  .sidebar-contact-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sidebar-phone-link {
+    color: var(--color-ivory);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .sidebar-phone-link:hover {
+    color: var(--color-sand);
+    text-decoration: underline;
+  }
+
+  .sidebar-wa-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-whatsapp-dark);
+    color: var(--color-ivory);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    margin-block: 4px;
+    width: fit-content;
+    transition: background 150ms;
+  }
+
+  .sidebar-wa-link:hover {
+    background: var(--color-whatsapp-deep);
+  }
+
+  .contact-email {
+    color: var(--color-sand);
+    font-size: 0.82rem;
+    font-weight: 500;
+    word-break: break-all;
+    margin-top: 4px;
+  }
+
+  .contact-email:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Honeypot ── */
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* ── sr-only ── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .page-body {
+      grid-template-columns: 1fr 280px;
+      gap: 28px;
+    }
+  }
+
+  @media (max-width: 820px) {
+    .page-hero {
+      padding: 48px 0 40px;
+    }
+
+    .page-hero-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 28px;
+    }
+
+    .hero-trust {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 14px 24px;
+    }
+
+    .page-body {
+      grid-template-columns: 1fr;
+      padding-top: 36px;
+      padding-bottom: 64px;
+    }
+
+    .sidebar {
+      order: -1;
+    }
+
+    .sidebar-sticky {
+      position: static;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .process-card {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .container-wide {
+      width: calc(100% - 32px);
+    }
+
+    .page-hero h1 {
+      font-size: clamp(2.4rem, 10vw, 3.4rem);
+    }
+
+    .field-row,
+    .field-row-3 {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar-sticky {
+      grid-template-columns: 1fr;
+    }
+
+    .process-card {
+      grid-column: span 1;
+    }
+
+    .form-section {
+      padding: 22px 18px;
+    }
+  }
+</style>
+
+<script>
+  const MAX_IMAGES = 5;
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+  const form        = document.querySelector("#property-form");
+  const submitBtn   = document.querySelector("#submit-button");
+  const formMsg     = document.querySelector("#form-message");
+  const fileInput   = document.querySelector("#images");
+  const dropZone    = document.querySelector("#drop-zone");
+  const filePreview = document.querySelector("#file-preview");
+  const urlSlots    = document.querySelector("#url-slots");
+  const addUrlBtn   = document.querySelector("#add-url-btn");
+  const limitMsg    = document.querySelector("#img-limit-msg");
+  const imgCounter  = document.querySelector("#img-counter");
+  const descTA      = document.querySelector("#f-description");
+  const descCount   = document.querySelector("#desc-count");
+  const successScreen = document.querySelector("#success-screen");
+  const submitAnother = document.querySelector("#submit-another");
+
+  // ── Character counter ──
+  descTA?.addEventListener("input", () => {
+    if (descCount) descCount.textContent = descTA.value.length;
+  });
+
+  // ── Image management ──
+  let dt = new DataTransfer();
+
+  function countImages() {
+    const urlCount = urlSlots?.querySelectorAll("input[type=url]").length ?? 0;
+    return dt.files.length + urlCount;
+  }
+
+  function refreshUI() {
+    const total   = countImages();
+    const atLimit = total >= MAX_IMAGES;
+
+    if (imgCounter) imgCounter.textContent = `${total} / ${MAX_IMAGES} image${total !== 1 ? "s" : ""}`;
+    if (limitMsg)   limitMsg.hidden = !atLimit;
+    if (addUrlBtn)  addUrlBtn.disabled = atLimit;
+
+    if (dropZone) {
+      dropZone.style.opacity       = atLimit ? "0.45" : "";
+      dropZone.style.pointerEvents = atLimit ? "none" : "";
+    }
+  }
+
+  function renderFilePreviews() {
+    if (!filePreview) return;
+    filePreview.innerHTML = "";
+
+    Array.from(dt.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const thumb  = document.createElement("div");
+        thumb.className = "img-thumb";
+
+        const img    = document.createElement("img");
+        img.src      = e.target.result;
+        img.alt      = file.name;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type  = "button";
+        removeBtn.className = "img-thumb-remove";
+        removeBtn.setAttribute("aria-label", `Remove ${file.name}`);
+        removeBtn.textContent = "×";
+        removeBtn.addEventListener("click", () => {
+          const newDt = new DataTransfer();
+          Array.from(dt.files).forEach((f, i) => { if (i !== index) newDt.items.add(f); });
+          dt = newDt;
+          renderFilePreviews();
+          refreshUI();
+        });
+
+        thumb.appendChild(img);
+        thumb.appendChild(removeBtn);
+        filePreview.appendChild(thumb);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    refreshUI();
+  }
+
+  function addFilesToDt(files) {
+    if (formMsg) formMsg.hidden = true;
+    const urlCount  = urlSlots?.querySelectorAll("input[type=url]").length ?? 0;
+    const remaining = MAX_IMAGES - dt.files.length - urlCount;
+    const incoming = Array.from(files);
+    const invalidFiles = incoming.filter(
+      (file) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE,
+    );
+    const validFiles = incoming.filter(
+      (file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE,
+    );
+    const uniqueFiles = validFiles.filter(
+      (file) =>
+        !Array.from(dt.files).some(
+          (existing) => existing.name === file.name && existing.size === file.size,
+        ),
+    );
+
+    if (invalidFiles.length) {
+      showMessage("Photos must be JPEG, PNG, or WebP files no larger than 5 MB each.");
+    }
+    if (uniqueFiles.length > remaining) {
+      showMessage(`Only ${Math.max(remaining, 0)} more photos can be added. The limit is ${MAX_IMAGES} total.`);
+    }
+
+    uniqueFiles.slice(0, Math.max(remaining, 0)).forEach((file) => dt.items.add(file));
+
+    fileInput.value = "";
+    renderFilePreviews();
+  }
+
+  // File input change
+  fileInput?.addEventListener("change", () => addFilesToDt(fileInput.files));
+
+  // Drag-and-drop
+  dropZone?.addEventListener("click", () => fileInput?.click());
+  dropZone?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput?.click(); }
+  });
+
+  ["dragenter", "dragover"].forEach((evt) => {
+    dropZone?.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  });
+
+  ["dragleave", "drop"].forEach((evt) => {
+    dropZone?.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove("drag-over"); });
+  });
+
+  dropZone?.addEventListener("drop", (e) => {
+    const files = e.dataTransfer?.files;
+    if (files?.length) addFilesToDt(files);
+  });
+
+  // URL slot
+  function addUrlSlot() {
+    if (!urlSlots || countImages() >= MAX_IMAGES) return;
+
+    const slot      = document.createElement("div");
+    slot.className  = "url-slot";
+
+    const input           = document.createElement("input");
+    input.type            = "url";
+    input.name            = "imageUrls";
+    input.placeholder     = "https://example.com/photo.jpg";
+    input.required        = true;
+    input.pattern         = "https://.+";
+    input.title           = "Enter a direct HTTPS image URL.";
+    input.setAttribute("aria-label", "Image URL");
+
+    const rm            = document.createElement("button");
+    rm.type             = "button";
+    rm.className        = "url-slot-remove";
+    rm.setAttribute("aria-label", "Remove URL");
+    rm.textContent      = "×";
+    rm.addEventListener("click", () => { slot.remove(); refreshUI(); });
+
+    slot.appendChild(input);
+    slot.appendChild(rm);
+    urlSlots.appendChild(slot);
+    input.focus();
+    refreshUI();
+  }
+
+  addUrlBtn?.addEventListener("click", addUrlSlot);
+
+  // ── Submit ──
+  function setLoading(loading) {
+    if (!submitBtn) return;
+    submitBtn.disabled = loading;
+    submitBtn.querySelector(".btn-label").textContent = loading ? "Submitting…" : "Submit property for review";
+    const spinner = submitBtn.querySelector(".btn-spinner");
+    if (spinner) spinner.hidden = !loading;
+  }
+
+  function showMessage(text, type = "info") {
+    if (!formMsg) return;
+    formMsg.textContent = text;
+    formMsg.className   = `form-message ${type === "success" ? "is-success" : "is-error"}`;
+    formMsg.hidden      = false;
+    formMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (countImages() > MAX_IMAGES) {
+      showMessage(`Please add at most ${MAX_IMAGES} images in total.`);
+      return;
+    }
+
+    if (!form.reportValidity()) return;
+
+    setLoading(true);
+    if (formMsg) formMsg.hidden = true;
+
+    try {
+      const fd = new FormData(form);
+      fd.delete("images");
+      Array.from(dt.files).forEach((f) => fd.append("images", f));
+
+      const res    = await fetch("/api/properties/submit", { method: "POST", body: fd });
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        // Show success screen
+        form.hidden           = true;
+        successScreen.hidden  = false;
+        successScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        showMessage(result.message || result.error || "Something went wrong.");
+      }
+    } catch {
+      showMessage("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // Reset to show form again
+  submitAnother?.addEventListener("click", () => {
+    form.reset();
+    form.hidden          = false;
+    successScreen.hidden = true;
+    dt = new DataTransfer();
+    if (filePreview) filePreview.innerHTML = "";
+    if (urlSlots)    urlSlots.innerHTML    = "";
+    if (descCount)   descCount.textContent = "0";
+    refreshUI();
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  refreshUI();
+</script>

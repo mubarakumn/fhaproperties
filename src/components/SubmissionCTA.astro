@@ -1,0 +1,81 @@
+
+<section class="submission-section">
+  <div class="container submission-box">
+    <div>
+      <span class="eyebrow">Property owners &amp; agents</span>
+      <h2>Have a property to sell?</h2>
+      <p>
+        Submit your property for review. Once FHA approves your listing,
+        it can be published on our platform for prospective buyers to discover.
+      </p>
+    </div>
+
+    <a class="btn" href="/submit-property/">
+      Submit your property <span>↗</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .submission-section {
+    padding: 76px 0;
+    background: var(--color-ivory);
+  }
+
+  .submission-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 45px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+  }
+
+  .eyebrow {
+    color: var(--color-sand);
+  }
+
+  h2 {
+    margin: 15px 0 10px;
+    font-family: Georgia, serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+  }
+
+  p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--color-slate);
+    font-size: 0.91rem;
+    line-height: 1.8;
+  }
+
+  .btn {
+    flex-shrink: 0;
+    background: var(--color-gold);
+    border-color: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  .btn:hover {
+    background: var(--color-sand);
+  }
+
+  .btn span {
+    margin-left: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .submission-section {
+      padding: 48px 0;
+    }
+
+    .submission-box {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 28px 22px;
+    }
+  }
+</style>

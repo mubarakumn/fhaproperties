@@ -1,0 +1,608 @@
+
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { connectDB } from "../../lib/db.js";
+import { normalizePropertyImageUrl } from "../../lib/propertyImages.js";
+import Property from "../../models/Property.js";
+
+const { slug } = Astro.params;
+
+let property = null;
+let databaseError = false;
+
+try {
+  await connectDB();
+
+  property = await Property.findOne({
+    slug,
+    status: "published",
+  }).lean();
+} catch (error) {
+  console.error("Failed to load property details:", error);
+  databaseError = true;
+}
+
+if (databaseError) {
+  Astro.response.status = 503;
+} else if (!property) {
+  Astro.response.status = 404;
+}
+
+const title = property
+  ? `${property.title} | FHA Properties Management`
+  : databaseError
+    ? "Temporarily Unavailable | FHA Properties Management"
+    : "Property Not Found | FHA Properties Management";
+
+const description = property
+  ? property.description || `Learn more about ${property.title} with FHA Properties Management.`
+  : "Property information is currently unavailable.";
+
+const location = property
+  ? [property.address, property.city, property.state]
+      .filter(Boolean)
+      .join(", ")
+  : "";
+
+const price = property
+  ? property.priceLabel ||
+    (property.priceAmount != null
+      ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
+      : "Price on request")
+  : "";
+
+const propertyImages = Array.isArray(property?.images)
+  ? property.images
+      .map((imageUrl: unknown) => normalizePropertyImageUrl(imageUrl))
+      .filter(Boolean)
+  : [];
+const image = propertyImages[0] || null;
+
+const contactMessage = property
+  ? `Hello FHA Properties Management, I would like more information about ${property.title}${location ? ` in ${location}` : ""}.`
+  : "";
+
+const whatsappPhone = "2348023456789";
+const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(contactMessage)}`;
+---
+
+<BaseLayout title={title} description={description}>
+  <Header />
+
+  {property ? (
+    <main class="property-page">
+      <div class="container">
+        <a class="back-link" href="/properties/">
+          ← Back to properties
+        </a>
+
+        <div class="property-heading">
+          <div>
+            <p class="eyebrow">
+              {property.listingType === "Rent" ? "PROPERTY FOR RENT" : "PROPERTY FOR SALE"}
+            </p>
+
+            <h1>{property.title}</h1>
+
+            <p class="location">
+              <span aria-hidden="true">⌖</span> {location || "Location available on request"}
+            </p>
+          </div>
+
+          <div class="price-block">
+            <span>Asking price</span>
+            <strong>{price}</strong>
+          </div>
+        </div>
+
+        <div class:list={["property-image", !image && "image-unavailable"]}>
+          {image && (
+            <img
+              id="main-property-photo"
+              src={image}
+              alt={property.title}
+              loading="eager"
+            />
+          )}
+          <span class="image-unavailable-message" hidden={Boolean(image)}>
+            No property photo available
+          </span>
+        </div>
+
+        {propertyImages.length > 1 && (
+          <div class="property-thumbnails">
+            {propertyImages.map((imgSrc, idx) => (
+              <button
+                type="button"
+                class={`thumb-btn ${idx === 0 ? "active" : ""}`}
+                data-image-src={imgSrc}
+                aria-label={`Show property photo ${idx + 1}`}
+              >
+                <img src={imgSrc} alt={`Thumbnail ${idx + 1}`} loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div class="property-layout">
+          <article class="property-content">
+            <div class="property-facts">
+              {property.type && (
+                <div class="fact">
+                  <span>Property type</span>
+                  <strong>{property.type}</strong>
+                </div>
+              )}
+
+              {property.bedrooms != null && (
+                <div class="fact">
+                  <span>Bedrooms</span>
+                  <strong>{property.bedrooms}</strong>
+                </div>
+              )}
+
+              {property.bathrooms != null && (
+                <div class="fact">
+                  <span>Bathrooms</span>
+                  <strong>{property.bathrooms}</strong>
+                </div>
+              )}
+
+              {property.area && (
+                <div class="fact">
+                  <span>Size</span>
+                  <strong>{property.area}</strong>
+                </div>
+              )}
+            </div>
+
+            <section class="content-section">
+              <h2>About this property</h2>
+              <p class="description">
+                {property.description || "Contact FHA Properties Management for more information about this property."}
+              </p>
+            </section>
+
+            {property.features && property.features.length > 0 && (
+              <section class="content-section">
+                <h2>Property features</h2>
+                <ul class="features">
+                  {property.features.map((feature) => (
+                    <li>{feature}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </article>
+
+          <aside class="contact-card">
+            <p class="eyebrow">INTERESTED IN THIS PROPERTY?</p>
+            <h2>Let's help you take the next step.</h2>
+            <p>
+              Contact our team to confirm availability, pricing, documentation
+              and viewing arrangements.
+            </p>
+
+            <a
+              class="contact-button whatsapp-contact-button"
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Enquire on WhatsApp
+            </a>
+
+            <div class="property-phone-box">
+              <span class="phone-box-label">Or call directly:</span>
+              <div class="property-phones">
+                <a href="tel:+2348023456789" class="prop-tel-link">
+                  📞 +234 803 914 5619
+                </a>
+                <a href="tel:+2348134567890" class="prop-tel-link">
+                  📞 +234 906 671 5348
+                </a>
+              </div>
+            </div>
+
+            <a class="secondary-link" href="/contact/">
+              Other ways to contact us
+            </a>
+          </aside>
+        </div>
+      </div>
+    </main>
+  ) : (
+    <main class="status-page">
+      <div class="status-content">
+        <p class="eyebrow">
+          {databaseError ? "TEMPORARILY UNAVAILABLE" : "PROPERTY NOT FOUND"}
+        </p>
+
+        <h1>
+          {databaseError
+            ? "We couldn't load this property."
+            : "This property isn't available."}
+        </h1>
+
+        <p>
+          {databaseError
+            ? "Please try again shortly or contact our team for assistance."
+            : "The link may be incorrect, or this listing may no longer be available."}
+        </p>
+
+        <a class="contact-button" href="/properties/">
+          Browse properties
+        </a>
+      </div>
+    </main>
+  )}
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .container {
+    width: min(1180px, calc(100% - 40px));
+    margin-inline: auto;
+  }
+
+  .property-page {
+    padding: 36px 0 90px;
+    color: var(--color-ink);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 34px;
+    color: var(--color-slate-blue);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .back-link:hover,
+  .secondary-link:hover {
+    color: var(--color-brand);
+  }
+
+  .property-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  .eyebrow {
+    color: var(--color-brand);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+  }
+
+  h1 {
+    margin: 12px 0;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+  }
+
+  .location {
+    color: var(--color-slate-blue);
+    line-height: 1.6;
+  }
+
+  .price-block {
+    display: grid;
+    gap: 8px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .price-block span,
+  .fact span {
+    color: var(--color-slate-blue);
+    font-size: 0.85rem;
+  }
+
+  .price-block strong {
+    font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  }
+
+  .property-image {
+    overflow: hidden;
+    aspect-ratio: 16 / 8;
+    border-radius: 12px;
+    background: var(--color-ivory);
+  }
+
+  .property-image.image-unavailable {
+    display: grid;
+    place-items: center;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-size: 0.9rem;
+  }
+
+  .image-unavailable-message[hidden] {
+    display: none;
+  }
+
+  .property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 150ms ease;
+  }
+
+  .property-thumbnails {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .thumb-btn {
+    flex-shrink: 0;
+    width: 90px;
+    height: 65px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 150ms, transform 100ms;
+  }
+
+  .thumb-btn:hover {
+    border-color: var(--color-brand);
+    transform: translateY(-2px);
+  }
+
+  .thumb-btn.active {
+    border-color: var(--color-brand);
+  }
+
+  .thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .property-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: 56px;
+    margin-top: 42px;
+  }
+
+  .property-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .fact {
+    display: grid;
+    gap: 8px;
+  }
+
+  .fact strong {
+    overflow-wrap: anywhere;
+  }
+
+  .content-section {
+    padding-top: 30px;
+  }
+
+  .content-section h2,
+  .contact-card h2 {
+    margin-bottom: 16px;
+    font-size: 1.35rem;
+    letter-spacing: -0.025em;
+  }
+
+  .description,
+  .contact-card > p:not(.eyebrow) {
+    color: var(--color-muted);
+    line-height: 1.9;
+    white-space: pre-line;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding-left: 20px;
+    color: var(--color-muted);
+    line-height: 1.7;
+  }
+
+  .contact-card {
+    padding: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-ivory);
+  }
+
+  .contact-card h2 {
+    margin-top: 14px;
+    line-height: 1.4;
+  }
+
+  .contact-button {
+    display: block;
+    margin-top: 24px;
+    padding: 15px 18px;
+    border-radius: 7px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .contact-button:hover {
+    background: var(--color-brand-deep);
+  }
+
+  .whatsapp-contact-button {
+    background: var(--color-whatsapp-dark);
+  }
+
+  .whatsapp-contact-button:hover {
+    background: var(--color-whatsapp-deep);
+  }
+
+  .property-phone-box {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .phone-box-label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .property-phones {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .prop-tel-link {
+    font-size: 0.88rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .prop-tel-link:hover {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .secondary-link {
+    display: block;
+    margin-top: 18px;
+    color: var(--color-brand);
+    font-size: 0.9rem;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .status-page {
+    display: grid;
+    min-height: 55vh;
+    place-items: center;
+    padding: 60px 20px;
+    text-align: center;
+  }
+
+  .status-content {
+    max-width: 540px;
+  }
+
+  .status-content h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+
+  .status-content > p:not(.eyebrow) {
+    color: var(--color-muted);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 850px) {
+    .property-layout {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .contact-card {
+      max-width: 520px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .property-heading {
+      align-items: start;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .price-block {
+      text-align: left;
+    }
+
+    .property-image {
+      aspect-ratio: 4 / 3;
+    }
+
+    .property-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 24px;
+    }
+
+    .features {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-card {
+      padding: 22px;
+    }
+  }
+</style>
+
+<script>
+  const mainPhoto = document.querySelector<HTMLImageElement>("#main-property-photo");
+  const photoFrame = mainPhoto?.parentElement;
+  const photoFallback = photoFrame?.querySelector<HTMLElement>(".image-unavailable-message");
+  const thumbnailButtons = document.querySelectorAll<HTMLButtonElement>(".thumb-btn");
+
+  function showPhotoFallback() {
+    if (mainPhoto) mainPhoto.hidden = true;
+    if (photoFallback) photoFallback.hidden = false;
+    photoFrame?.classList.add("image-unavailable");
+  }
+
+  mainPhoto?.addEventListener("error", showPhotoFallback);
+  mainPhoto?.addEventListener("load", () => {
+    mainPhoto.hidden = false;
+    if (photoFallback) photoFallback.hidden = true;
+    photoFrame?.classList.remove("image-unavailable");
+  });
+  if (mainPhoto?.complete && mainPhoto.naturalWidth === 0) showPhotoFallback();
+
+  thumbnailButtons.forEach((button) => {
+    const thumbnail = button.querySelector("img");
+    const hideBrokenThumbnail = () => {
+      button.hidden = true;
+    };
+
+    thumbnail?.addEventListener("error", hideBrokenThumbnail, { once: true });
+    if (thumbnail?.complete && thumbnail.naturalWidth === 0) hideBrokenThumbnail();
+
+    button.addEventListener("click", () => {
+      const imageUrl = button.dataset.imageSrc;
+      if (!mainPhoto || !imageUrl) return;
+
+      thumbnailButtons.forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      mainPhoto.src = imageUrl;
+      mainPhoto.hidden = false;
+      if (photoFallback) photoFallback.hidden = true;
+      photoFrame?.classList.remove("image-unavailable");
+    });
+  });
+</script>

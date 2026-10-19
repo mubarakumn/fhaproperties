@@ -1,0 +1,299 @@
+---
+import ContentPage from "../../components/ContentPage.astro";
+---
+
+<ContentPage
+  title="Contact FHA Properties Management"
+  description="Get in touch with FHA Properties Management. Call our direct lines, chat with us on WhatsApp, or email our team."
+  eyebrow="Contact Us"
+  heading="Let’s talk about your next property."
+  image="https://upload.wikimedia.org/wikipedia/commons/f/fb/Federal_Medical_Centre_Epe%2C_Lagos_Nigeria_%28Reception_Back_View%29.jpg"
+  imageAlt="Federal Medical Centre grounds in Epe, Lagos State, Nigeria"
+  imageCredit="Hayatullahbusari / Wikimedia Commons"
+  imageCreditUrl="https://commons.wikimedia.org/wiki/File:Federal_Medical_Centre_Epe,_Lagos_Nigeria_(Reception_Back_View).jpg"
+  imageLicense="CC BY-SA 4.0"
+  imageLicenseUrl="https://creativecommons.org/licenses/by-sa/4.0/"
+>
+  <h2>We're ready to assist you</h2>
+  <p>
+    Whether you are looking to acquire a verified property, submit your listing
+    for sale or lease, or discuss construction and development services, our team
+    is available through phone, WhatsApp, and email.
+  </p>
+
+  <div class="content-columns contact-grid">
+    <section class="contact-box">
+      <div class="box-icon" aria-hidden="true">📞</div>
+      <h3>Direct Phone Lines</h3>
+      <p>Speak directly with our property and sales representatives.</p>
+      <div class="contact-actions">
+        <a href="tel:+2348023456789" class="phone-item">
+          <strong>Primary:</strong> +234 803 914 5619
+        </a>
+        <a href="tel:+2348134567890" class="phone-item">
+          <strong>Secondary:</strong> +234 906 671 5348
+        </a>
+      </div>
+      <small class="hours-note">Monday – Saturday: 8:00 AM – 6:00 PM</small>
+    </section>
+
+    <section class="contact-box highlight-box">
+      <div class="box-icon wa-icon" aria-hidden="true">💬</div>
+      <h3>WhatsApp Direct</h3>
+      <p>Instant messaging for quick questions, photos, and inspection bookings.</p>
+      <div class="contact-actions">
+        <a
+          href="https://wa.me/2348023456789?text=Hello%20FHA%20Properties%20Management%2C%20I%20would%20like%20to%20make%20an%20enquiry."
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-wa-direct"
+        >
+          Chat on WhatsApp ↗
+        </a>
+      </div>
+      <small class="hours-note">Typical response within a few minutes</small>
+    </section>
+
+    <section class="contact-box">
+      <div class="box-icon" aria-hidden="true">✉️</div>
+      <h3>Email Support</h3>
+      <p>Send documentation, formal proposals, or project enquiries.</p>
+      <div class="contact-actions">
+        <a href="mailto:fehintolahayodeji@gmail.com" class="email-item">
+          fehintolahayodeji@gmail.com
+        </a>
+      </div>
+      <small class="hours-note">Replies within 24 hours</small>
+    </section>
+
+    <section class="contact-box">
+      <div class="box-icon" aria-hidden="true">📋</div>
+      <h3>Submit a Property</h3>
+      <p>List your home, land, or commercial building on our platform.</p>
+      <div class="contact-actions">
+        <a href="/submit-property/" class="text-cta-link">
+          Open property submission form →
+        </a>
+      </div>
+    </section>
+  </div>
+</ContentPage>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .contact-box {
+    padding: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-ivory);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .highlight-box {
+    border-color: var(--color-whatsapp);
+    background: rgb(37 211 102 / 10%);
+  }
+
+  .box-icon {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+  }
+
+  .contact-box h3 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    font-family: Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+
+  .contact-box p {
+    margin: 0 0 16px;
+    color: var(--color-muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .contact-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    padding-bottom: 12px;
+  }
+
+  .phone-item {
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .phone-item:hover {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .email-item {
+    font-size: 0.9rem;
+    color: var(--color-brand);
+    word-break: break-all;
+    font-weight: 600;
+  }
+
+  .btn-wa-direct {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 20px;
+    border-radius: 7px;
+    background: var(--color-whatsapp-dark);
+    color: var(--color-ivory);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgb(37 211 102 / 22%);
+    transition: background 150ms, transform 100ms;
+  }
+
+  .btn-wa-direct:hover {
+    background: var(--color-whatsapp-deep);
+    transform: translateY(-1px);
+  }
+
+  .text-cta-link {
+    color: var(--color-brand);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .hours-note {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--color-gray);
+    border-top: 1px solid var(--color-border);
+    padding-top: 10px;
+  }
+
+  @media (max-width: 700px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .contact-box {
+    padding: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-ivory);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .highlight-box {
+    border-color: var(--color-whatsapp);
+    background: rgb(37 211 102 / 10%);
+  }
+
+  .box-icon {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+  }
+
+  .contact-box h3 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    font-family: Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+
+  .contact-box p {
+    margin: 0 0 16px;
+    color: var(--color-muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .contact-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    padding-bottom: 12px;
+  }
+
+  .phone-item {
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .phone-item:hover {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .email-item {
+    font-size: 0.9rem;
+    color: var(--color-brand);
+    word-break: break-all;
+    font-weight: 600;
+  }
+
+  .btn-wa-direct {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 20px;
+    border-radius: 7px;
+    background: var(--color-whatsapp-dark);
+    color: var(--color-ivory);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgb(37 211 102 / 22%);
+    transition: background 150ms, transform 100ms;
+  }
+
+  .btn-wa-direct:hover {
+    background: var(--color-whatsapp-deep);
+    transform: translateY(-1px);
+  }
+
+  .text-cta-link {
+    color: var(--color-brand);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .hours-note {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--color-gray);
+    border-top: 1px solid var(--color-border);
+    padding-top: 10px;
+  }
+
+  @media (max-width: 700px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</ContentPage>

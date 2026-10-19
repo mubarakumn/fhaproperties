@@ -1,0 +1,284 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+
+const {
+  title,
+  description,
+  eyebrow = "FHA PROPERTIES MANAGEMENT",
+  heading,
+  image,
+  imageAlt = "",
+  imageCredit,
+  imageCreditUrl,
+  imageLicense,
+  imageLicenseUrl,
+  breadcrumbs = [],
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <Header />
+  <main class="content-page">
+    <section class="page-hero">
+      <div class:list={["container", "page-hero-inner", image && "with-image"]}>
+        <div class="page-intro">
+          <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            {breadcrumbs.map((item) => (
+              <>
+                <span aria-hidden="true">/</span>
+                <a href={item.href}>{item.label}</a>
+              </>
+            ))}
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">{heading}</span>
+          </nav>
+          <p class="eyebrow">{eyebrow}</p>
+          <h1>{heading}</h1>
+          <p class="page-summary">{description}</p>
+        </div>
+        {image && (
+          <figure class="page-image">
+            <img src={image} alt={imageAlt} loading="eager" />
+            <figcaption>
+              Photo by <a href={imageCreditUrl} target="_blank" rel="noopener noreferrer">{imageCredit}</a>
+              · <a href={imageLicenseUrl} target="_blank" rel="noopener noreferrer">{imageLicense}</a>
+            </figcaption>
+          </figure>
+        )}
+      </div>
+    </section>
+    <section class="page-content">
+      <div class="container page-copy">
+        <slot />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .content-page {
+    color: var(--color-ink);
+  }
+
+  .page-hero {
+    padding: 38px 0 44px;
+    background: var(--color-ivory);
+  }
+
+  .page-hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 38px;
+  }
+
+  .page-hero-inner.with-image {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.85fr);
+  }
+
+  .page-intro {
+    max-width: 720px;
+  }
+
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 34px;
+    color: var(--color-slate-blue);
+    font-size: 0.76rem;
+  }
+
+  .breadcrumbs a:hover {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .breadcrumbs [aria-current="page"] {
+    color: var(--color-ink);
+  }
+
+  .eyebrow {
+    margin: 0 0 12px;
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 760px;
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1.12;
+  }
+
+  .page-summary {
+    max-width: 640px;
+    margin: 18px 0 0;
+    color: var(--color-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .page-image {
+    position: relative;
+    margin: 0;
+  }
+
+  .page-image img {
+    width: 100%;
+    aspect-ratio: 1.35;
+    object-fit: cover;
+  }
+
+  .page-image figcaption {
+    margin-top: 7px;
+    color: var(--color-slate-blue);
+    font-size: 0.7rem;
+  }
+
+  .page-image figcaption a {
+    color: inherit;
+    text-underline-offset: 2px;
+  }
+
+  .page-content {
+    padding: 48px 0 76px;
+  }
+
+  .page-copy {
+    max-width: 940px;
+  }
+
+  :global(.page-copy h2) {
+    margin: 42px 0 12px;
+    font-family: Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  :global(.page-copy h2:first-child) {
+    margin-top: 0;
+  }
+
+  :global(.page-copy h3) {
+    margin: 0 0 8px;
+    font-size: 1rem;
+  }
+
+  :global(.page-copy p),
+  :global(.page-copy li) {
+    color: var(--color-muted);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  :global(.page-copy p) {
+    max-width: 760px;
+    margin: 0 0 16px;
+  }
+
+  :global(.page-copy ul),
+  :global(.page-copy ol) {
+    display: grid;
+    gap: 9px;
+    max-width: 760px;
+    padding-left: 22px;
+  }
+
+  :global(.page-copy a:not(.content-button)) {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  :global(.content-columns) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 32px 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  :global(.content-columns > section) {
+    padding: 22px 18px 24px 0;
+  }
+
+  :global(.content-columns > section + section) {
+    padding-left: 20px;
+    border-left: 1px solid var(--color-border);
+  }
+
+  :global(.content-columns p) {
+    margin-bottom: 0;
+    font-size: 0.86rem;
+  }
+
+  :global(.content-button) {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 0 18px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  :global(.content-button:hover) {
+    background: var(--color-brand-deep);
+  }
+
+  @media (max-width: 760px) {
+    .page-hero {
+      padding: 26px 0 34px;
+    }
+
+    .page-hero-inner.with-image {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    h1 {
+      font-size: 2.3rem;
+    }
+
+    .breadcrumbs {
+      margin-bottom: 24px;
+    }
+
+    .page-content {
+      padding: 36px 0 56px;
+    }
+
+    :global(.content-columns) {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    :global(.content-columns > section),
+    :global(.content-columns > section + section) {
+      padding: 18px 0;
+      border-left: 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    :global(.content-columns > section:last-child) {
+      border-bottom: 0;
+    }
+  }
+</style>

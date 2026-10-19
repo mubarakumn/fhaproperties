@@ -1,0 +1,195 @@
+
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import PropertySearch from "../components/PropertySearch.astro";
+import PropertyCard from "../components/PropertyCard.astro";
+import Services from "../components/Services.astro";
+import SubmissionCTA from "../components/SubmissionCTA.astro";
+import Footer from "../components/Footer.astro";
+import { connectDB } from "../lib/db.js";
+import Property from "../models/Property.js";
+
+let featuredProperties = [];
+let listingsUnavailable = false;
+
+try {
+  await connectDB();
+  featuredProperties = await Property.find({ status: "published" })
+    .sort({ publishedAt: -1, createdAt: -1 })
+    .limit(3)
+    .lean();
+} catch (error) {
+  console.error("Failed to load homepage properties:", error);
+  listingsUnavailable = true;
+}
+---
+
+<BaseLayout>
+  <Header />
+  <main>
+    <Hero />
+
+    <div class="container">
+      <PropertySearch />
+    </div>
+
+    <section class="featured-section">
+      <div class="container">
+        <div class="section-top">
+          <div>
+            <span class="eyebrow">Explore opportunities</span>
+            <h2 class="section-heading">Find your next property.</h2>
+            <p class="section-description">
+              Discover residential, commercial and land opportunities
+              across Nigeria.
+            </p>
+          </div>
+          <a class="text-link" href="/properties/">View all properties <span>→</span></a>
+        </div>
+
+        {listingsUnavailable ? (
+          <div class="listings-empty" role="status">
+            <h3>Listings are temporarily unavailable.</h3>
+            <p>Please try again later or browse the properties page.</p>
+            <a href="/properties/">Browse properties</a>
+          </div>
+        ) : featuredProperties.length > 0 ? (
+          <div class="property-grid">
+            {featuredProperties.map((property) => (
+              <PropertyCard
+                image={property.images?.[0]}
+                title={property.title}
+                location={[property.city, property.state].filter(Boolean).join(", ") || "Location available on request"}
+                price={
+                  property.priceLabel ||
+                  (property.priceAmount != null
+                    ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
+                    : "Price on request")
+                }
+                type={property.type || "Property"}
+                listingType={property.listingType || "Sale"}
+                beds={property.bedrooms}
+                baths={property.bathrooms}
+                area={property.area}
+                href={`/properties/${property.slug}/`}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="listings-empty">
+            <h3>No published properties yet.</h3>
+            <p>Our team is preparing verified listings. Browse all properties or submit one for review.</p>
+            <div class="empty-actions">
+              <a href="/properties/">Browse properties</a>
+              <a href="/submit-property/">Submit a property</a>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <Services />
+    <SubmissionCTA />
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .featured-section {
+    padding: 30px 0 85px;
+  }
+
+  .section-top {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 25px;
+    margin-bottom: 32px;
+  }
+
+  .section-description {
+    max-width: 560px;
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .text-link {
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    font-size: 0.83rem;
+    font-weight: 700;
+  }
+
+  .text-link span {
+    margin-left: 7px;
+    color: var(--color-gold);
+  }
+
+  .property-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .listings-empty {
+    padding: 30px;
+    border: 1px solid var(--color-border);
+    background: var(--color-ivory);
+  }
+
+  .listings-empty h3 {
+    margin: 0 0 8px;
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+  }
+
+  .listings-empty p {
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+
+  .empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .empty-actions a,
+  .listings-empty > a {
+    color: var(--color-brand);
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 760px) {
+    .featured-section {
+      padding-bottom: 60px;
+    }
+
+    .property-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .section-top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .property-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

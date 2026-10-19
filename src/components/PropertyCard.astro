@@ -1,0 +1,170 @@
+
+---
+const {
+  image,
+  title,
+  location,
+  price = "Price on request",
+  type = "Property",
+  listingType = "Sale",
+  beds,
+  baths,
+  area,
+  href = "/properties/",
+} = Astro.props;
+---
+
+<article
+  class="property-card"
+  data-property-card
+  data-location={location?.toLowerCase() || ""}
+  data-type={type.toLowerCase()}
+  data-listing-type={listingType.toLowerCase()}
+>
+  <a class="property-image" href={href} aria-label={`View ${title}`}>
+    {image && <img src={image} alt={title} loading="lazy" />}
+    <span class="image-unavailable" hidden={Boolean(image)}>
+      Photo unavailable
+    </span>
+    <span class="property-badge">{listingType}</span>
+  </a>
+
+  <div class="property-content">
+    <p class="property-type">{type}</p>
+    <h3><a href={href}>{title}</a></h3>
+    <p class="property-location">{location}</p>
+
+    <div class="property-details">
+      {beds && <span>{beds} beds</span>}
+      {baths && <span>{baths} baths</span>}
+      {area && <span>{area}</span>}
+    </div>
+
+    <div class="property-bottom">
+      <strong>{price}</strong>
+      <a href={href} class="property-link">View details ↗</a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .property-card {
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    background: var(--color-ivory);
+  }
+
+  .property-image {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--color-ivory);
+  }
+
+  .property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 250ms ease;
+  }
+
+  .image-unavailable {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-size: 0.82rem;
+  }
+
+  .image-unavailable[hidden] {
+    display: none;
+  }
+
+  .property-card:hover .property-image img {
+    transform: scale(1.035);
+  }
+
+  .property-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 7px 10px;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .property-content {
+    padding: 20px;
+  }
+
+  .property-type {
+    margin: 0 0 8px;
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .property-content h3 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .property-location {
+    margin: 0;
+    color: var(--color-slate-blue);
+    font-size: 0.86rem;
+  }
+
+  .property-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-slate-blue);
+    font-size: 0.78rem;
+  }
+
+  .property-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 17px;
+  }
+
+  .property-bottom strong {
+    font-size: 0.92rem;
+  }
+
+  .property-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  document.querySelectorAll(".property-card .property-image img").forEach((image) => {
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const showFallback = () => {
+      image.hidden = true;
+      const fallback = image.parentElement?.querySelector(".image-unavailable");
+      if (fallback instanceof HTMLElement) fallback.hidden = false;
+    };
+
+    image.addEventListener("error", showFallback, { once: true });
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+</script>

@@ -1,0 +1,30 @@
+{
+  "name": "fhaproperties",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "admin:create": "node scripts/manage-admin.js create",
+    "admin:password": "node scripts/manage-admin.js password",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^11.1.8",
+    "@astrojs/vercel": "^8.0.4",
+    "astro": "^7.4.0",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
+    "dotenv": "^18.0.8",
+    "mongoose": "^9.11.2",
+    "react": "^19.3.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3"
+  }
+}

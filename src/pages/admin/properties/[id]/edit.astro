@@ -1,0 +1,1299 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import { connectDB } from "../../../../lib/db.js";
+import { getAdminFromCookies } from "../../../../lib/adminAuth.js";
+import Property from "../../../../models/Property.js";
+import mongoose from "mongoose";
+
+export const prerender = false;
+
+const admin = await getAdminFromCookies(Astro.cookies);
+
+if (!admin) {
+  return Astro.redirect("/admin/login/");
+}
+
+const { id } = Astro.params;
+
+if (!id || !mongoose.isValidObjectId(id)) {
+  return Astro.redirect("/admin/");
+}
+
+let property = null;
+
+try {
+  await connectDB();
+  property = await Property.findById(id).lean();
+} catch (err) {
+  console.error("Failed to load property for editing:", err);
+}
+
+if (!property) {
+  return Astro.redirect("/admin/");
+}
+
+const featuresString = Array.isArray(property.features)
+  ? property.features.join(", ")
+  : "";
+---
+
+<BaseLayout
+  title={`Edit ${property.title} | FHA Admin`}
+  description="Update property details, pricing, photos, and listing status."
+>
+  <main class="edit-page">
+    <!-- Topbar -->
+    <header class="edit-topbar">
+      <div class="topbar-inner">
+        <a href="/admin/" class="back-link">
+          ← Back to Dashboard
+        </a>
+
+        <div class="topbar-right">
+          <span class="admin-user-pill">
+            Admin: <strong>{admin}</strong>
+          </span>
+          {property.status === "published" && (
+            <a
+              href={`/properties/${property.slug}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-view-live"
+            >
+              View Live Listing ↗
+            </a>
+          )}
+        </div>
+      </div>
+    </header>
+
+    <div class="edit-container">
+      <div class="page-header">
+        <p class="eyebrow">PROPERTY EDITOR</p>
+        <h1>Edit Property Details</h1>
+        <p class="subhead">
+          Update the information, pricing, specifications, or images for this property.
+        </p>
+      </div>
+
+      <div id="form-feedback" class="feedback-banner" role="alert" hidden></div>
+
+      <form id="edit-property-form" class="edit-form" novalidate data-id={property._id.toString()}>
+        <!-- ── Section 1: Basic Info ── -->
+        <div class="form-card">
+          <div class="card-head">
+            <span class="step-num">01</span>
+            <div>
+              <h2>Basic Information</h2>
+              <p>Title, property category, and listing intent.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label for="p-title">Property Title <span class="req">*</span></label>
+              <input
+                id="p-title"
+                name="title"
+                type="text"
+                value={property.title}
+                required
+                maxlength="160"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-type">Property Type <span class="req">*</span></label>
+              <select id="p-type" name="type" required>
+                <option value="House" selected={property.type === "House"}>House</option>
+                <option value="Apartment" selected={property.type === "Apartment"}>Apartment</option>
+                <option value="Land" selected={property.type === "Land"}>Land</option>
+                <option value="Commercial" selected={property.type === "Commercial"}>Commercial Property</option>
+                <option value="Other" selected={property.type === "Other"}>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="p-listingType">Listing Purpose <span class="req">*</span></label>
+              <select id="p-listingType" name="listingType" required>
+                <option value="Sale" selected={property.listingType === "Sale"}>For Sale</option>
+                <option value="Rent" selected={property.listingType === "Rent"}>For Rent</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 2: Location ── -->
+        <div class="form-card">
+          <div class="card-head">
+            <span class="step-num">02</span>
+            <div>
+              <h2>Location</h2>
+              <p>Geographical details for property discovery.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="p-state">State <span class="req">*</span></label>
+              <input
+                id="p-state"
+                name="state"
+                type="text"
+                value={property.state}
+                required
+                maxlength="80"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-city">City or District <span class="req">*</span></label>
+              <input
+                id="p-city"
+                name="city"
+                type="text"
+                value={property.city}
+                required
+                maxlength="100"
+              />
+            </div>
+
+            <div class="field full">
+              <label for="p-address">Street Address or Landmark</label>
+              <input
+                id="p-address"
+                name="address"
+                type="text"
+                value={property.address || ""}
+                maxlength="250"
+                placeholder="e.g. Plot 204, Constitution Avenue"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 3: Pricing & Specs ── -->
+        <div class="form-card">
+          <div class="card-head">
+            <span class="step-num">03</span>
+            <div>
+              <h2>Pricing & Dimensions</h2>
+              <p>Amount, room counts, and total square meters.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="p-price">Price in Naira (₦)</label>
+              <div class="input-prefix-box">
+                <span class="input-prefix">₦</span>
+                <input
+                  id="p-price"
+                  name="priceAmount"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={property.priceAmount != null ? property.priceAmount : ""}
+                  class="has-prefix"
+                  placeholder="e.g. 50000000"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="p-priceLabel">Price Label / Note</label>
+              <input
+                id="p-priceLabel"
+                name="priceLabel"
+                type="text"
+                value={property.priceLabel || ""}
+                placeholder="e.g. Negotiable, per annum"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-bedrooms">Bedrooms</label>
+              <input
+                id="p-bedrooms"
+                name="bedrooms"
+                type="number"
+                min="0"
+                max="100"
+                value={property.bedrooms != null ? property.bedrooms : ""}
+                placeholder="0"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-bathrooms">Bathrooms</label>
+              <input
+                id="p-bathrooms"
+                name="bathrooms"
+                type="number"
+                min="0"
+                max="100"
+                value={property.bathrooms != null ? property.bathrooms : ""}
+                placeholder="0"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-area">Property Size / Area</label>
+              <input
+                id="p-area"
+                name="area"
+                type="text"
+                value={property.area || ""}
+                placeholder="e.g. 500 sqm, 1 Plot"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="field">
+              <label for="p-features">Features (comma-separated)</label>
+              <input
+                id="p-features"
+                name="features"
+                type="text"
+                value={featuresString}
+                placeholder="e.g. Borehole, CCTV, Solar Inverter"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 4: Description ── -->
+        <div class="form-card">
+          <div class="card-head">
+            <span class="step-num">04</span>
+            <div>
+              <h2>Property Description <span class="req">*</span></h2>
+              <p>Detailed condition, structural highlights, and legal title.</p>
+            </div>
+          </div>
+
+          <div class="field full">
+            <textarea
+              id="p-desc"
+              name="description"
+              rows="7"
+              required
+              minlength="20"
+              maxlength="5000"
+            >{property.description}</textarea>
+            <div class="char-count">
+              <span id="desc-chars">{property.description?.length || 0}</span> / 5000
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 5: Photos Management (Up to 5 total) ── -->
+        <div class="form-card">
+          <div class="card-head">
+            <span class="step-num">05</span>
+            <div>
+              <h2>Property Photos (Up to 5 Total)</h2>
+              <p>Manage current photos, upload new files, or add direct image URLs.</p>
+            </div>
+          </div>
+
+          <!-- Existing Images Grid -->
+          <div class="existing-photos-block">
+            <p class="section-sublabel">Current Photos:</p>
+            <div id="existing-photos-grid" class="existing-photos-grid">
+              {property.images && property.images.length > 0 ? (
+                property.images.map((imgSrc, index) => (
+                  <div class="existing-thumb-card" data-url={imgSrc}>
+                    <img src={imgSrc} alt={`Photo ${index + 1}`} />
+                    <span class="existing-photo-fallback" hidden>Photo unavailable</span>
+                    <input type="hidden" name="existingImages" value={imgSrc} />
+                    <button
+                      type="button"
+                      class="btn-remove-existing"
+                      title="Remove this photo"
+                      aria-label="Remove photo"
+                    >
+                      ×
+                    </button>
+                    <span class="photo-idx">Photo {index + 1}</span>
+                  </div>
+                ))
+              ) : (
+                <p class="no-photos-note">No photos attached to this property.</p>
+              )}
+            </div>
+          </div>
+
+          <!-- Upload New Photos -->
+          <div class="upload-new-block">
+            <p class="section-sublabel">Upload New Photos:</p>
+            <div id="edit-drop-zone" class="drop-target" role="button" tabindex="0">
+              <input
+                id="edit-file-input"
+                name="images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                class="sr-only"
+                tabindex="-1"
+              />
+              <div class="drop-msg">
+                <span class="drop-icon">📷</span>
+                <p><strong>Click to browse files</strong> or drag photos here</p>
+                <small>JPEG, PNG, WebP · Max 5MB each</small>
+              </div>
+            </div>
+
+            <!-- New uploads preview strip -->
+            <div id="new-uploads-strip" class="preview-strip"></div>
+          </div>
+
+          <!-- Add Image URLs -->
+          <div class="url-links-block">
+            <p class="section-sublabel">Add Photo Links (URLs):</p>
+            <div id="edit-url-slots" class="url-slots-list"></div>
+            <button id="btn-add-edit-url" type="button" class="btn-secondary-sm">
+              + Add Image URL
+            </button>
+          </div>
+
+          <!-- Photos Limit Counter -->
+          <div class="total-photos-counter">
+            <span id="photos-counter" class="counter-badge">0 / 5 photos</span>
+            <span id="photos-limit-msg" class="warn-msg" hidden>
+              Maximum 5 photos reached. Remove an image to add another.
+            </span>
+          </div>
+        </div>
+
+        <!-- ── Section 6: Status & Save ── -->
+        <div class="form-card save-card">
+          <div class="status-selector-row">
+            <label for="p-status"><strong>Listing Status:</strong></label>
+            <select id="p-status" name="status" class="status-select">
+              <option value="published" selected={property.status === "published"}>
+                🟢 Published (Visible on website)
+              </option>
+              <option value="draft" selected={property.status === "draft"}>
+                ⚪ Draft (Hidden from website)
+              </option>
+              <option value="pending_review" selected={property.status === "pending_review"}>
+                🟡 Pending Review
+              </option>
+              <option value="archived" selected={property.status === "archived"}>
+                📦 Archived
+              </option>
+              <option value="rejected" selected={property.status === "rejected"}>
+                🔴 Rejected
+              </option>
+            </select>
+          </div>
+
+          <div class="actions-row">
+            <a href="/admin/" class="btn-cancel">Cancel</a>
+            <button id="save-btn" type="submit" class="btn-save">
+              <span class="btn-text">Save Changes</span>
+              <span class="btn-spinner" hidden>⏳ Updating...</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  :root {
+    --gold: var(--color-gold);
+    --ink: var(--color-ink);
+    --bg-page: var(--color-ivory);
+    --card-bg: var(--color-ivory);
+    --border: var(--color-border);
+    --muted: var(--color-muted);
+    --red: var(--color-brand-deep);
+    --green: var(--color-brand);
+  }
+
+  .edit-page {
+    min-height: 100vh;
+    background: var(--bg-page);
+    color: var(--ink);
+    padding-bottom: 90px;
+  }
+
+  /* ── Topbar ── */
+  .edit-topbar {
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgb(239 240 235 / 16%);
+  }
+
+  .topbar-inner {
+    max-width: 1020px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-link {
+    color: var(--color-slate);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 150ms;
+  }
+
+  .back-link:hover {
+    color: var(--color-sand);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-user-pill {
+    font-size: 0.8rem;
+    color: var(--color-slate);
+    background: rgb(239 240 235 / 12%);
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
+  .btn-view-live {
+    color: var(--color-sand);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 5px 12px;
+    background: rgb(200 152 31 / 16%);
+    border-radius: 6px;
+  }
+
+  /* ── Container ── */
+  .edit-container {
+    max-width: 920px;
+    margin: 36px auto 0;
+    padding: 0 20px;
+  }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+
+  .eyebrow {
+    margin: 0 0 6px;
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .page-header h1 {
+    margin: 0 0 8px;
+    font-family: Georgia, serif;
+    font-size: clamp(2rem, 3.5vw, 2.6rem);
+    letter-spacing: -0.03em;
+  }
+
+  .subhead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* ── Feedback Banner ── */
+  .feedback-banner {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .feedback-banner.is-success {
+    background: rgb(39 67 113 / 12%);
+    border: 1px solid var(--color-slate);
+    color: var(--color-brand-deep);
+  }
+
+  .feedback-banner.is-error {
+    background: rgb(200 152 31 / 12%);
+    border: 1px solid var(--color-sand);
+    color: var(--red);
+  }
+
+  /* ── Form Cards ── */
+  .edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 6px rgb(29 28 26 / 2%);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-ivory);
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .card-head h2 {
+    margin: 0 0 4px;
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .card-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  /* Form Fields Grid */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field.full {
+    grid-column: span 2;
+  }
+
+  .field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .req {
+    color: var(--color-brand);
+  }
+
+  .edit-form input:not(.sr-only),
+  .edit-form select,
+  .edit-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: var(--color-ivory);
+    transition: border-color 150ms;
+  }
+
+  .edit-form input:focus,
+  .edit-form select:focus,
+  .edit-form textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgb(1 49 109 / 12%);
+  }
+
+  .input-prefix-box {
+    position: relative;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-gray);
+    pointer-events: none;
+  }
+
+  .has-prefix {
+    padding-left: 28px !important;
+  }
+
+  .char-count {
+    text-align: right;
+    font-size: 0.76rem;
+    color: var(--color-gray);
+    margin-top: 4px;
+  }
+
+  /* ── Photos Section ── */
+  .section-sublabel {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .existing-photos-block {
+    margin-bottom: 24px;
+  }
+
+  .existing-photos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .existing-thumb-card {
+    position: relative;
+    width: 110px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    box-shadow: 0 2px 6px rgb(29 28 26 / 6%);
+  }
+
+  .existing-thumb-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .existing-photo-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .existing-photo-fallback[hidden] {
+    display: none;
+  }
+
+  .existing-thumb-card .photo-idx {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgb(29 28 26 / 60%);
+    color: var(--color-ivory);
+    font-size: 0.65rem;
+    text-align: center;
+    padding: 2px 0;
+  }
+
+  .btn-remove-existing {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgb(29 28 26 / 70%);
+    color: var(--color-ivory);
+    border: 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 150ms;
+  }
+
+  .btn-remove-existing:hover {
+    background: var(--red);
+  }
+
+  .no-photos-note {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  /* Drop zone */
+  .upload-new-block {
+    margin-bottom: 20px;
+  }
+
+  .drop-target {
+    border: 2px dashed var(--color-slate);
+    border-radius: 10px;
+    padding: 28px 20px;
+    text-align: center;
+    background: var(--color-ivory);
+    cursor: pointer;
+    transition: border-color 150ms, background 150ms;
+  }
+
+  .drop-target:hover, .drop-target.drag-over {
+    border-color: var(--gold);
+    background: rgb(200 152 31 / 12%);
+  }
+
+  .drop-msg {
+    pointer-events: none;
+  }
+
+  .drop-icon {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .drop-msg p {
+    margin: 0 0 4px;
+    font-size: 0.88rem;
+    color: var(--color-muted);
+  }
+
+  .drop-msg small {
+    color: var(--color-gray);
+    font-size: 0.76rem;
+  }
+
+  .preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .new-thumb-box {
+    position: relative;
+    width: 90px;
+    height: 80px;
+    border-radius: 7px;
+    overflow: visible;
+  }
+
+  .new-thumb-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+  }
+
+  .btn-del-new {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--color-ivory);
+    border: 2px solid var(--color-ivory);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .btn-del-new:hover {
+    background: var(--red);
+  }
+
+  /* URL Block */
+  .url-links-block {
+    margin-bottom: 18px;
+  }
+
+  .url-slots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .url-row input {
+    flex: 1;
+  }
+
+  .btn-del-url {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-slate-blue);
+  }
+
+  .btn-del-url:hover {
+    background: rgb(200 152 31 / 12%);
+    color: var(--red);
+  }
+
+  .btn-secondary-sm {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-secondary-sm:hover {
+    background: var(--color-ivory);
+  }
+
+  .total-photos-counter {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .counter-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .warn-msg {
+    font-size: 0.8rem;
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* ── Save Card ── */
+  .save-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .status-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-select {
+    padding: 10px 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: var(--color-ivory);
+  }
+
+  .actions-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-cancel {
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--color-ivory);
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 150ms;
+  }
+
+  .btn-cancel:hover {
+    background: rgb(208 208 201 / 30%);
+  }
+
+  .btn-save {
+    padding: 12px 28px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--color-brand);
+    color: var(--color-ivory);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+
+  .btn-save:hover:not(:disabled) {
+    background: var(--color-brand-deep);
+  }
+
+  .btn-save:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 640px) {
+    .edit-container {
+      margin-top: 20px;
+      padding: 0 14px;
+    }
+    .form-card {
+      padding: 18px 14px;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .field.full {
+      grid-column: span 1;
+    }
+    .status-selector-row {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+    .status-select {
+      width: 100%;
+    }
+    .save-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+    .actions-row {
+      flex-direction: column;
+    }
+    .btn-cancel, .btn-save {
+      width: 100%;
+      text-align: center;
+      box-sizing: border-box;
+    }
+  }
+</style>
+
+<script>
+  const MAX_IMAGES = 5;
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+  const form = document.querySelector("#edit-property-form");
+  const saveBtn = document.querySelector("#save-btn");
+  const feedback = document.querySelector("#form-feedback");
+  const propertyId = form?.dataset.id;
+
+  const descInput = document.querySelector("#p-desc");
+  const descChars = document.querySelector("#desc-chars");
+
+  const existingGrid = document.querySelector("#existing-photos-grid");
+  const fileInput = document.querySelector("#edit-file-input");
+  const dropZone = document.querySelector("#edit-drop-zone");
+  const newStrip = document.querySelector("#new-uploads-strip");
+  const urlSlots = document.querySelector("#edit-url-slots");
+  const addUrlBtn = document.querySelector("#btn-add-edit-url");
+  const counterBadge = document.querySelector("#photos-counter");
+  const limitMsg = document.querySelector("#photos-limit-msg");
+
+  let newDt = new DataTransfer();
+
+  // Character counter
+  descInput?.addEventListener("input", () => {
+    if (descChars) descChars.textContent = descInput.value.length;
+  });
+
+  // Calculate total images count across (existing + new uploads + new URLs)
+  function countAllImages() {
+    const existingCount = existingGrid?.querySelectorAll(".existing-thumb-card").length || 0;
+    const urlCount = urlSlots?.querySelectorAll("input[type=url]").length || 0;
+    return existingCount + newDt.files.length + urlCount;
+  }
+
+  function updatePhotosUI() {
+    const total = countAllImages();
+    const atLimit = total >= MAX_IMAGES;
+
+    if (counterBadge) {
+      counterBadge.textContent = `${total} / ${MAX_IMAGES} photo${total !== 1 ? "s" : ""}`;
+    }
+    if (limitMsg) limitMsg.hidden = !atLimit;
+    if (addUrlBtn) addUrlBtn.disabled = atLimit;
+
+    if (dropZone) {
+      dropZone.style.opacity = atLimit ? "0.45" : "";
+      dropZone.style.pointerEvents = atLimit ? "none" : "";
+    }
+  }
+
+  // Handle removing existing photos
+  existingGrid?.querySelectorAll(".existing-thumb-card img").forEach((image) => {
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const showFallback = () => {
+      image.hidden = true;
+      const fallback = image.parentElement?.querySelector(".existing-photo-fallback");
+      if (fallback instanceof HTMLElement) fallback.hidden = false;
+    };
+
+    image.addEventListener("error", showFallback, { once: true });
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+
+  existingGrid?.querySelectorAll(".btn-remove-existing").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".existing-thumb-card");
+      if (card) {
+        card.remove();
+        updatePhotosUI();
+      }
+    });
+  });
+
+  // Render new uploaded thumbnails
+  function renderNewUploads() {
+    if (!newStrip) return;
+    newStrip.innerHTML = "";
+
+    Array.from(newDt.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const box = document.createElement("div");
+        box.className = "new-thumb-box";
+
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.alt = file.name;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "btn-del-new";
+        del.textContent = "×";
+        del.title = `Remove ${file.name}`;
+        del.addEventListener("click", () => {
+          const fresh = new DataTransfer();
+          Array.from(newDt.files).forEach((f, i) => {
+            if (i !== index) fresh.items.add(f);
+          });
+          newDt = fresh;
+          renderNewUploads();
+          updatePhotosUI();
+        });
+
+        box.appendChild(img);
+        box.appendChild(del);
+        newStrip.appendChild(box);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    updatePhotosUI();
+  }
+
+  function addNewFiles(files) {
+    if (feedback) feedback.hidden = true;
+    const totalCurrent = countAllImages();
+    const remaining = MAX_IMAGES - totalCurrent;
+    const incoming = Array.from(files);
+    const invalidFiles = incoming.filter(
+      (file) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE,
+    );
+    const validFiles = incoming.filter(
+      (file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE,
+    );
+    const uniqueFiles = validFiles.filter(
+      (file) =>
+        !Array.from(newDt.files).some(
+          (existing) => existing.name === file.name && existing.size === file.size,
+        ),
+    );
+
+    if (invalidFiles.length) {
+      showImageError("Photos must be JPEG, PNG, or WebP files no larger than 5 MB each.");
+    }
+    if (uniqueFiles.length > remaining) {
+      showImageError(`Only ${Math.max(remaining, 0)} more photos can be added. The limit is ${MAX_IMAGES} total.`);
+    }
+
+    uniqueFiles.slice(0, Math.max(remaining, 0)).forEach((file) => newDt.items.add(file));
+
+    fileInput.value = "";
+    renderNewUploads();
+  }
+
+  function showImageError(message) {
+    if (!feedback) return;
+    feedback.hidden = false;
+    feedback.className = "feedback-banner is-error";
+    feedback.textContent = message;
+  }
+
+  fileInput?.addEventListener("change", () => addNewFiles(fileInput.files));
+
+  dropZone?.addEventListener("click", () => fileInput?.click());
+  dropZone?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      fileInput?.click();
+    }
+  });
+
+  ["dragenter", "dragover"].forEach((evt) => {
+    dropZone?.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach((evt) => {
+    dropZone?.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("drag-over");
+    });
+  });
+
+  dropZone?.addEventListener("drop", (e) => {
+    const files = e.dataTransfer?.files;
+    if (files?.length) addNewFiles(files);
+  });
+
+  // URL Slots
+  function addUrlSlot() {
+    if (!urlSlots || countAllImages() >= MAX_IMAGES) return;
+
+    const row = document.createElement("div");
+    row.className = "url-row";
+
+    const input = document.createElement("input");
+    input.type = "url";
+    input.name = "imageUrls";
+    input.placeholder = "https://example.com/property-photo.jpg";
+    input.required = true;
+    input.pattern = "https://.+";
+    input.title = "Enter a direct HTTPS image URL.";
+
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "btn-del-url";
+    rm.textContent = "×";
+    rm.addEventListener("click", () => {
+      row.remove();
+      updatePhotosUI();
+    });
+
+    row.appendChild(input);
+    row.appendChild(rm);
+    urlSlots.appendChild(row);
+    input.focus();
+    updatePhotosUI();
+  }
+
+  addUrlBtn?.addEventListener("click", addUrlSlot);
+
+  // Form submission
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!form.reportValidity()) return;
+
+    if (countAllImages() > MAX_IMAGES) {
+      alert(`You can have a maximum of ${MAX_IMAGES} photos.`);
+      return;
+    }
+
+    saveBtn.disabled = true;
+    const btnText = saveBtn.querySelector(".btn-text");
+    const btnSpinner = saveBtn.querySelector(".btn-spinner");
+    if (btnText) btnText.hidden = true;
+    if (btnSpinner) btnSpinner.hidden = false;
+
+    if (feedback) feedback.hidden = true;
+
+    try {
+      const fd = new FormData(form);
+
+      // Explicitly append newly chosen file objects from newDt
+      fd.delete("images");
+      Array.from(newDt.files).forEach((f) => fd.append("images", f));
+
+      const res = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/update`, {
+        method: "POST",
+        body: fd,
+      });
+
+      const data = await res.json();
+
+      if (feedback) {
+        feedback.hidden = false;
+        feedback.className = `feedback-banner ${res.ok && data.success ? "is-success" : "is-error"}`;
+        feedback.textContent = data.message || "Failed to save changes.";
+        feedback.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      if (res.ok && data.success) {
+        setTimeout(() => {
+          window.location.assign("/admin/");
+        }, 1200);
+      }
+    } catch (err) {
+      if (feedback) {
+        feedback.hidden = false;
+        feedback.className = "feedback-banner is-error";
+        feedback.textContent = "Network error. Please try again.";
+      }
+    } finally {
+      saveBtn.disabled = false;
+      if (btnText) btnText.hidden = false;
+      if (btnSpinner) btnSpinner.hidden = true;
+    }
+  });
+
+  updatePhotosUI();
+</script>

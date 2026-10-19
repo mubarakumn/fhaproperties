@@ -1,0 +1,218 @@
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <a href="/" class="brand">
+          <img class="brand-logo" src="/fha_logo.png" alt="FHA Properties Management" width="156" height="104" loading="lazy" />
+        </a>
+        <p>
+          Property solutions, construction management and building services
+          across Nigeria.
+        </p>
+      </div>
+
+      <div class="footer-column">
+        <h3>Explore</h3>
+        <a href="/properties/">Properties</a>
+        <a href="/submit-property/">Submit a property</a>
+        <a href="/about/">About FHA</a>
+      </div>
+
+      <div class="footer-column">
+        <h3>Services</h3>
+        <a href="/services/">All services</a>
+        <a href="/services/property-sales/">Buying &amp; selling</a>
+        <a href="/services/construction-management/">Construction management</a>
+        <a href="/services/exterior-construction/">Building exteriors</a>
+      </div>
+
+      <div class="footer-column">
+        <h3>Contact Us</h3>
+        <a href="tel:+2348023456789" class="footer-contact-link">
+          <span class="c-icon" aria-hidden="true">📞</span> +234 803 914 5619
+        </a>
+        <a href="tel:+2348134567890" class="footer-contact-link">
+          <span class="c-icon" aria-hidden="true">📞</span> +234 906 671 5348
+        </a>
+        <a
+          href="https://wa.me/2348023456789?text=Hello%20FHA%20Properties%20Management%2C%20I%20would%20like%20to%20make%20an%20enquiry."
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-wa-link"
+        >
+          <span class="wa-dot" aria-hidden="true"></span> Chat on WhatsApp
+        </a>
+        <a href="mailto:fehintolahayodeji@gmail.com" class="footer-mail-link">
+          fehintolahayodeji@gmail.com
+        </a>
+        <span class="location-tag">📍 Lagos &amp; Across Nigeria</span>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {new Date().getFullYear()} FHA Properties Management.</span>
+      <div>
+        <a href="/privacy-policy/">Privacy policy</a>
+        <a href="/terms/">Terms of use</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding: 58px 0 22px;
+    background: var(--color-ivory);
+  }
+
+  .footer-main {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1.2fr 1.2fr;
+    gap: 35px;
+    padding-bottom: 48px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .brand-logo {
+    display: block;
+    width: 156px;
+    height: auto;
+  }
+
+  .footer-brand p {
+    max-width: 270px;
+    color: var(--color-slate-blue);
+    font-size: 0.83rem;
+    line-height: 1.8;
+  }
+
+  .footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .footer-column h3 {
+    margin: 4px 0 8px;
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .footer-column a,
+  .footer-column span {
+    color: var(--color-slate-blue);
+    font-size: 0.82rem;
+  }
+
+  .footer-contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+
+  .c-icon {
+    font-size: 0.8rem;
+  }
+
+  .footer-wa-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--color-whatsapp-dark) !important;
+    font-weight: 600;
+    text-decoration: none;
+    background: rgb(37 211 102 / 12%);
+    padding: 4px 10px;
+    border-radius: 5px;
+    transition: background 150ms;
+  }
+
+  .footer-wa-link:hover {
+    background: rgb(37 211 102 / 22%);
+  }
+
+  .wa-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-whatsapp);
+    display: inline-block;
+  }
+
+  .location-tag {
+    color: var(--color-slate-blue) !important;
+    font-size: 0.78rem !important;
+    margin-top: 4px;
+  }
+
+  .footer-wa-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--color-whatsapp-dark) !important;
+    font-weight: 600;
+    text-decoration: none;
+    background: rgb(37 211 102 / 12%);
+    padding: 4px 10px;
+    border-radius: 5px;
+    transition: background 150ms;
+  }
+
+  .footer-wa-link:hover {
+    background: rgb(37 211 102 / 22%);
+  }
+
+  .wa-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-whatsapp);
+    display: inline-block;
+  }
+
+  .footer-column a:hover,
+  .footer-bottom a:hover {
+    color: var(--color-brand);
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-slate-blue);
+    font-size: 0.72rem;
+  }
+
+  .footer-bottom div {
+    display: flex;
+    gap: 20px;
+  }
+
+  @media (max-width: 860px) {
+    .footer-main {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px 20px;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 450px) {
+    .footer-bottom {
+      flex-direction: column;
+    }
+  }
+</style>
+
