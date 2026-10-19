@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^11.1.8",
-    "@astrojs/vercel": "^8.0.4",
+    "@astrojs/vercel": "^11.0.15",
     "astro": "^7.4.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
