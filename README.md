@@ -40,11 +40,14 @@ All commands are run from the root of the project, from a terminal:
 
 ## Vercel deployment
 
-Set the Vercel project root directory to `fhaproperties`. The included
-`vercel.json` identifies the Astro framework, and the Astro config selects
-Vercel's adapter during Vercel builds so page routes and `/api/*` endpoints
-are deployed as server-rendered functions. Local development and standalone
-Node builds continue to use the Node adapter.
+Set the Vercel project root directory to the repository root (`.`), the
+directory containing `package.json` and `vercel.json`. There is no separate
+`frontend` directory. The included `vercel.json` identifies the Astro
+framework, and the Astro config selects Vercel's adapter during Vercel builds
+so page routes and `/api/*` endpoints are deployed as server-rendered
+functions. Astro handles page routing and 404s; do not add a catch-all rewrite
+that would send API requests to a page. Local development and standalone Node
+builds continue to use the Node adapter.
 
 Add `MONGODB_URI`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
 `CLOUDINARY_API_SECRET` as Vercel project environment variables for each
@@ -59,7 +62,7 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
 
 Admin credentials are stored in MongoDB and managed from an interactive terminal. No admin username, password, recovery key, or session-signing secret is needed in environment variables. `MONGODB_URI` is still required by the app.
 
-Create the first admin account from the `fhaproperties` directory:
+Create the first admin account from the repository root:
 
 ```sh
 npm run admin:create
