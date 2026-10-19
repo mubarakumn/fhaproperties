@@ -21,28 +21,65 @@ const {
   data-type={type.toLowerCase()}
   data-listing-type={listingType.toLowerCase()}
 >
-  <a class="property-image" href={href} aria-label={`View ${title}`}>
-    {image && <img src={image} alt={title} loading="lazy" />}
-    <span class="image-unavailable" hidden={Boolean(image)}>
-      Photo unavailable
-    </span>
+  <div class="property-media">
+    <a class="property-image" href={href} aria-label={`View ${title}`}>
+      {image && <img src={image} alt={title} loading="lazy" decoding="async" />}
+      <span class="image-unavailable" hidden={Boolean(image)}>
+        Photo unavailable
+      </span>
+    </a>
     <span class="property-badge">{listingType}</span>
-  </a>
+    <span class="property-type">{type}</span>
+  </div>
 
   <div class="property-content">
-    <p class="property-type">{type}</p>
+    <p class="property-location">
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+        <path d="M16 8.3c0 4.2-6 9-6 9s-6-4.8-6-9a6 6 0 1 1 12 0Z" />
+        <circle cx="10" cy="8" r="2" />
+      </svg>
+      <span>{location || "Location available on request"}</span>
+    </p>
     <h3><a href={href}>{title}</a></h3>
-    <p class="property-location">{location}</p>
 
     <div class="property-details">
-      {beds && <span>{beds} beds</span>}
-      {baths && <span>{baths} baths</span>}
-      {area && <span>{area}</span>}
+      {beds && (
+        <span>
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+            <path d="M3 15V6m0 7h14v2M5 10h4a2 2 0 0 1 2 2v1H5v-3Zm6 0h4a2 2 0 0 1 2 2v1h-6v-3Z" />
+          </svg>
+          {beds} {Number(beds) === 1 ? "bed" : "beds"}
+        </span>
+      )}
+      {baths && (
+        <span>
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10h12v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-2Zm2 0V5a2 2 0 0 1 4 0v1m-6 10-.8 1m10.8-1 .8 1" />
+          </svg>
+          {baths} {Number(baths) === 1 ? "bath" : "baths"}
+        </span>
+      )}
+      {area && (
+        <span>
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+            <path d="M4 7V4h3m6 0h3v3m0 6v3h-3m-6 0H4v-3M4 4l4 4m8-4-4 4m4 8-4-4m-8 4 4-4" />
+          </svg>
+          {area}
+        </span>
+      )}
     </div>
 
     <div class="property-bottom">
-      <strong>{price}</strong>
-      <a href={href} class="property-link">View details ↗</a>
+      <div class="property-price">
+        <span>Price</span>
+        <strong>{price}</strong>
+      </div>
+      <a href={href} class="property-link">
+        View details
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+          <path d="M4 10h12m-5-5 5 5-5 5" />
+        </svg>
+      </a>
     </div>
   </div>
 </article>
@@ -50,16 +87,30 @@ const {
 <style>
   .property-card {
     min-width: 0;
+    overflow: hidden;
     border: 1px solid var(--color-border);
+    border-radius: 14px;
     background: var(--color-ivory);
+    box-shadow: 0 4px 18px rgb(29 28 26 / 5%);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .property-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgb(29 28 26 / 11%);
+  }
+
+  .property-media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--color-sand);
   }
 
   .property-image {
-    position: relative;
     display: block;
-    overflow: hidden;
-    aspect-ratio: 4 / 3;
-    background: var(--color-ivory);
+    width: 100%;
+    height: 100%;
   }
 
   .property-image img {
@@ -75,7 +126,7 @@ const {
     height: 100%;
     place-items: center;
     background: var(--color-sand);
-    color: var(--color-ink);
+    color: var(--color-slate-blue);
     font-size: 0.82rem;
   }
 
@@ -91,48 +142,99 @@ const {
     position: absolute;
     top: 14px;
     left: 14px;
-    padding: 7px 10px;
-    background: var(--color-ivory);
-    color: var(--color-ink);
-    font-size: 0.72rem;
-    font-weight: 600;
-  }
-
-  .property-content {
-    padding: 20px;
+    padding: 7px 11px;
+    border: 1px solid rgb(255 255 255 / 60%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 94%);
+    color: var(--color-brand-deep);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
   }
 
   .property-type {
-    margin: 0 0 8px;
-    color: var(--color-brand);
-    font-size: 0.72rem;
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    margin: 0;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgb(24 32 42 / 78%);
+    color: #fff;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
+  .property-content {
+    display: flex;
+    min-height: 220px;
+    flex-direction: column;
+    padding: 18px 20px 16px;
+  }
+
   .property-content h3 {
-    margin: 0 0 8px;
+    margin: 0 0 14px;
     font-size: 1.15rem;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.4;
+    letter-spacing: -0.015em;
+  }
+
+  .property-content h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .property-content h3 a:hover {
+    color: var(--color-brand);
   }
 
   .property-location {
-    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
     color: var(--color-slate-blue);
-    font-size: 0.86rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .property-location svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-width: 1.5;
   }
 
   .property-details {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 18px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--color-border);
+    gap: 8px 14px;
+    margin-top: auto;
+    padding: 13px 0;
     color: var(--color-slate-blue);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
+  }
+
+  .property-details span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .property-details svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
   }
 
   .property-bottom {
@@ -140,17 +242,64 @@ const {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-top: 17px;
+    gap: 10px;
+    padding-top: 13px;
+    border-top: 1px solid var(--color-border);
   }
 
-  .property-bottom strong {
+  .property-price {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .property-price > span {
+    color: var(--color-slate-blue);
+    font-size: 0.67rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .property-price strong {
+    overflow-wrap: anywhere;
+    color: var(--color-ink);
     font-size: 0.92rem;
   }
 
   .property-link {
-    font-size: 0.8rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    color: var(--color-brand);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .property-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .property-link svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+
+  @media (max-width: 400px) {
+    .property-content {
+      padding-inline: 15px;
+    }
+
+    .property-bottom {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 </style>
 

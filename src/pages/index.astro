@@ -12,6 +12,7 @@ import { connectDB } from "../lib/db.js";
 import Property from "../models/Property.js";
 
 let featuredProperties = [];
+let states = [];
 let listingsUnavailable = false;
 
 try {
@@ -20,6 +21,17 @@ try {
     .sort({ publishedAt: -1, createdAt: -1 })
     .limit(3)
     .lean();
+  try {
+    const propertyStates = await Property.distinct("state", {
+      status: "published",
+    });
+    states = [...new Set(propertyStates.filter(Boolean))].sort();
+  } catch (error) {
+    console.error("Failed to load homepage property locations:", error);
+    states = [
+      ...new Set(featuredProperties.map((property) => property.state).filter(Boolean)),
+    ].sort();
+  }
 } catch (error) {
   console.error("Failed to load homepage properties:", error);
   listingsUnavailable = true;
@@ -31,8 +43,8 @@ try {
   <main>
     <Hero />
 
-    <div class="container">
-      <PropertySearch />
+    <div class="container search-container">
+      <PropertySearch states={states} />
     </div>
 
     <section class="featured-section">
@@ -99,6 +111,11 @@ try {
 <style>
   .featured-section {
     padding: 30px 0 85px;
+  }
+
+  .search-container {
+    position: relative;
+    z-index: 2;
   }
 
   .section-top {

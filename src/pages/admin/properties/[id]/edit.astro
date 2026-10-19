@@ -1022,6 +1022,11 @@ const featuresString = Array.isArray(property.features)
 </style>
 
 <script>
+  import {
+    preparePropertyImages,
+    PropertyImagePreparationError,
+  } from "../../../../lib/propertyImageClient.js";
+
   const MAX_IMAGES = 5;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -1143,10 +1148,16 @@ const featuresString = Array.isArray(property.features)
     const remaining = MAX_IMAGES - totalCurrent;
     const incoming = Array.from(files);
     const invalidFiles = incoming.filter(
-      (file) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE,
+      (file) =>
+        !ALLOWED_IMAGE_TYPES.has(file.type) ||
+        file.size === 0 ||
+        file.size > MAX_IMAGE_SIZE,
     );
     const validFiles = incoming.filter(
-      (file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE,
+      (file) =>
+        ALLOWED_IMAGE_TYPES.has(file.type) &&
+        file.size > 0 &&
+        file.size <= MAX_IMAGE_SIZE,
     );
     const uniqueFiles = validFiles.filter(
       (file) =>
@@ -1261,7 +1272,8 @@ const featuresString = Array.isArray(property.features)
 
       // Explicitly append newly chosen file objects from newDt
       fd.delete("images");
-      Array.from(newDt.files).forEach((f) => fd.append("images", f));
+      const preparedImages = await preparePropertyImages(newDt.files);
+      preparedImages.forEach((file) => fd.append("images", file));
 
       const res = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/update`, {
         method: "POST",
@@ -1286,7 +1298,10 @@ const featuresString = Array.isArray(property.features)
       if (feedback) {
         feedback.hidden = false;
         feedback.className = "feedback-banner is-error";
-        feedback.textContent = "Network error. Please try again.";
+        feedback.textContent =
+          err instanceof PropertyImagePreparationError
+            ? err.message
+            : "Network error. Please try again.";
       }
     } finally {
       saveBtn.disabled = false;

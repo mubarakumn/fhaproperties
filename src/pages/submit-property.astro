@@ -465,7 +465,7 @@ import Footer from "../components/Footer.astro";
                 📞 +234 906 671 5348
               </a>
               <a
-                href="https://wa.me/2348023456789?text=Hello%20FHA%20Properties%20Management%2C%20I%20have%20a%20question%20about%20submitting%20a%20property."
+                href="https://wa.me/2348039145619?text=Hello%20FHA%20Properties%20Management%2C%20I%20have%20a%20question%20about%20submitting%20a%20property."
                 target="_blank"
                 rel="noopener noreferrer"
                 class="sidebar-wa-link"
@@ -1447,6 +1447,11 @@ import Footer from "../components/Footer.astro";
 </style>
 
 <script>
+  import {
+    preparePropertyImages,
+    PropertyImagePreparationError,
+  } from "../lib/propertyImageClient.js";
+
   const MAX_IMAGES = 5;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -1536,10 +1541,16 @@ import Footer from "../components/Footer.astro";
     const remaining = MAX_IMAGES - dt.files.length - urlCount;
     const incoming = Array.from(files);
     const invalidFiles = incoming.filter(
-      (file) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE,
+      (file) =>
+        !ALLOWED_IMAGE_TYPES.has(file.type) ||
+        file.size === 0 ||
+        file.size > MAX_IMAGE_SIZE,
     );
     const validFiles = incoming.filter(
-      (file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE,
+      (file) =>
+        ALLOWED_IMAGE_TYPES.has(file.type) &&
+        file.size > 0 &&
+        file.size <= MAX_IMAGE_SIZE,
     );
     const uniqueFiles = validFiles.filter(
       (file) =>
@@ -1648,7 +1659,8 @@ import Footer from "../components/Footer.astro";
     try {
       const fd = new FormData(form);
       fd.delete("images");
-      Array.from(dt.files).forEach((f) => fd.append("images", f));
+      const preparedImages = await preparePropertyImages(dt.files);
+      preparedImages.forEach((file) => fd.append("images", file));
 
       const res    = await fetch("/api/properties/submit", { method: "POST", body: fd });
       const result = await res.json();
@@ -1661,8 +1673,12 @@ import Footer from "../components/Footer.astro";
       } else {
         showMessage(result.message || result.error || "Something went wrong.");
       }
-    } catch {
-      showMessage("We couldn't reach the server. Check your connection and try again.");
+    } catch (error) {
+      showMessage(
+        error instanceof PropertyImagePreparationError
+          ? error.message
+          : "We couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setLoading(false);
     }
