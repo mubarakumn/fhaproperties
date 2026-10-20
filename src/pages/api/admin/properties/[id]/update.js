@@ -34,6 +34,7 @@ const allowedStatuses = new Set([
   "rejected",
   "published",
   "archived",
+  "sold",
 ]);
 
 function json(data, status = 200) {

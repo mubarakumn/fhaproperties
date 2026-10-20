@@ -37,7 +37,7 @@ export async function POST({ request, cookies, params }) {
     return json({ error: "Invalid request payload." }, 400);
   }
 
-  const action = body?.action; // "publish", "unpublish", "delete", "archive", "reject"
+  const action = body?.action; // "publish", "unpublish", "delete", "archive", "reject", "sold"
   const notes =
     typeof body?.notes === "string" ? body.notes.trim().slice(0, 2000) : "";
 
@@ -47,6 +47,7 @@ export async function POST({ request, cookies, params }) {
     "delete",
     "archive",
     "reject",
+    "sold",
   ]);
 
   if (!allowedActions.has(action)) {
@@ -77,6 +78,8 @@ export async function POST({ request, cookies, params }) {
       newStatus = "archived";
     } else if (action === "reject") {
       newStatus = "rejected";
+    } else if (action === "sold") {
+      newStatus = "sold";
     } else if (action === "publish") {
       newStatus = "published";
     }

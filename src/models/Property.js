@@ -118,6 +118,7 @@ const propertySchema = new mongoose.Schema(
         "rejected",
         "published",
         "archived",
+        "sold",
       ],
       default: "draft",
       required: true,

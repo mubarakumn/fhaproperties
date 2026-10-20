@@ -384,6 +384,9 @@ const featuresString = Array.isArray(property.features)
               <option value="archived" selected={property.status === "archived"}>
                 📦 Archived
               </option>
+              <option value="sold" selected={property.status === "sold"}>
+                ✅ Sold (hidden from public listings)
+              </option>
               <option value="rejected" selected={property.status === "rejected"}>
                 🔴 Rejected
               </option>

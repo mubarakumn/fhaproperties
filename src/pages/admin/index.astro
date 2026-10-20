@@ -23,7 +23,7 @@ try {
   [pendingSubmissions, publishedProperties, draftsAndArchived] = await Promise.all([
     Property.find({ status: "pending_review" }).sort({ createdAt: -1 }).lean(),
     Property.find({ status: "published" }).sort({ publishedAt: -1, createdAt: -1 }).lean(),
-    Property.find({ status: { $in: ["draft", "rejected", "archived"] } }).sort({ updatedAt: -1 }).lean(),
+    Property.find({ status: { $in: ["draft", "rejected", "archived", "sold"] } }).sort({ updatedAt: -1 }).lean(),
   ]);
 } catch (error) {
   console.error("Failed to load admin dashboard properties:", error);
@@ -419,6 +419,9 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
                         <a href={`/admin/properties/${property._id}/edit/`} class="btn-pub-edit">Edit</a>
                         <button class="btn-pub-unpublish" data-action="unpublish" type="button" title="Move back to draft">
                           Unpublish
+                        </button>
+                        <button class="btn-pub-sold" data-action="sold" type="button" title="Mark property as sold and hide from listings">
+                          Mark sold
                         </button>
                         <button class="btn-pub-delete" data-action="delete" type="button" title="Delete property permanently">
                           Delete
@@ -1659,7 +1662,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     transition: background 150ms, border-color 150ms, color 150ms;
   }
 
-  .btn-pub-unpublish, .btn-pub-delete {
+  .btn-pub-unpublish, .btn-pub-sold, .btn-pub-delete {
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -1677,6 +1680,16 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   .btn-pub-unpublish:hover {
     background: rgb(208 208 201 / 30%);
     border-color: var(--color-gray);
+  }
+
+  .btn-pub-sold {
+    border: 1px solid rgb(64 122 72 / 30%);
+    background: rgb(65 146 89 / 10%);
+    color: #1f6f3b;
+  }
+
+  .btn-pub-sold:hover {
+    background: rgb(65 146 89 / 16%);
   }
 
   .btn-pub-delete {
@@ -1751,6 +1764,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .status-rejected { background: rgb(200 152 31 / 12%); color: var(--color-brand-deep); }
   .status-archived { background: rgb(96 112 137 / 14%); color: var(--color-brand-mid); }
+  .status-sold { background: rgb(39 128 79 / 12%); color: #1d6b3b; }
 
   .other-listing-actions {
     display: flex;
@@ -2416,17 +2430,21 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   document.querySelectorAll(".pub-card").forEach((card) => {
     const propertyId = card.dataset.id;
     const unpublishBtn = card.querySelector(".btn-pub-unpublish");
+    const soldBtn = card.querySelector(".btn-pub-sold");
     const deleteBtn = card.querySelector(".btn-pub-delete");
 
     async function handleStatus(action) {
       const confirmText =
         action === "delete"
           ? "Are you sure you want to PERMANENTLY delete this property? This cannot be undone."
-          : "Unpublish this property? It will be removed from the public website and saved as a draft.";
+          : action === "sold"
+            ? "Mark this property as sold? It will be hidden from public listings but kept in the admin record."
+            : "Unpublish this property? It will be removed from the public website and saved as a draft.";
 
       if (!window.confirm(confirmText)) return;
 
       if (unpublishBtn) unpublishBtn.disabled = true;
+      if (soldBtn) soldBtn.disabled = true;
       if (deleteBtn) deleteBtn.disabled = true;
 
       try {
@@ -2446,11 +2464,13 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
       } catch (err) {
         alert(err.message || "Action failed.");
         if (unpublishBtn) unpublishBtn.disabled = false;
+        if (soldBtn) soldBtn.disabled = false;
         if (deleteBtn) deleteBtn.disabled = false;
       }
     }
 
     unpublishBtn?.addEventListener("click", () => handleStatus("unpublish"));
+    soldBtn?.addEventListener("click", () => handleStatus("sold"));
     deleteBtn?.addEventListener("click", () => handleStatus("delete"));
   });
 
