@@ -15,7 +15,7 @@ try {
   await connectDB();
 
   properties = await Property.find({
-    status: "published",
+    status: { $in: ["published", "sold"] },
   })
     .sort({ publishedAt: -1, createdAt: -1 })
     .lean();
@@ -85,6 +85,7 @@ const states = [
                 }
                 type={property.type}
                 listingType={property.listingType}
+                status={property.status}
                 beds={property.bedrooms ?? "—"}
                 baths={property.bathrooms ?? "—"}
                 area={property.area || "Contact us for details"}

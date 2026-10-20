@@ -7,6 +7,7 @@ const {
   price = "Price on request",
   type = "Property",
   listingType = "Sale",
+  status = "published",
   beds,
   baths,
   area,
@@ -28,7 +29,9 @@ const {
         Photo unavailable
       </span>
     </a>
-    <span class="property-badge">{listingType}</span>
+    <span class:list={["property-badge", status === "sold" && "sold-badge"]}>
+      {status === "sold" ? "SOLD" : `For ${listingType}`}
+    </span>
     <span class="property-type">{type}</span>
   </div>
 
@@ -71,7 +74,7 @@ const {
 
     <div class="property-bottom">
       <div class="property-price">
-        <span>Price</span>
+        <span>{status === "sold" ? "Price at time of sale" : "Price"}</span>
         <strong>{price}</strong>
       </div>
       <a href={href} class="property-link">
@@ -151,6 +154,17 @@ const {
     font-weight: 700;
     text-transform: capitalize;
     box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  }
+
+  .property-badge.sold-badge {
+    padding: 9px 14px;
+    border: 2px solid #fff;
+    background: #8b1e24;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    box-shadow: 0 3px 12px rgb(24 32 42 / 30%);
   }
 
   .property-type {

@@ -17,13 +17,13 @@ let listingsUnavailable = false;
 
 try {
   await connectDB();
-  featuredProperties = await Property.find({ status: "published" })
+  featuredProperties = await Property.find({ status: { $in: ["published", "sold"] } })
     .sort({ publishedAt: -1, createdAt: -1 })
     .limit(3)
     .lean();
   try {
     const propertyStates = await Property.distinct("state", {
-      status: "published",
+      status: { $in: ["published", "sold"] },
     });
     states = [...new Set(propertyStates.filter(Boolean))].sort();
   } catch (error) {
@@ -82,6 +82,7 @@ try {
                 }
                 type={property.type || "Property"}
                 listingType={property.listingType || "Sale"}
+                status={property.status}
                 beds={property.bedrooms}
                 baths={property.bathrooms}
                 area={property.area}
@@ -103,6 +104,45 @@ try {
     </section>
 
     <Services />
+
+    <section class="trust-section" aria-labelledby="trust-heading">
+      <div class="container trust-inner">
+        <div class="trust-intro">
+          <p class="eyebrow">A clearer way forward</p>
+          <h2 id="trust-heading">Know what happens at every step.</h2>
+          <p>
+            Property decisions matter. We keep the process clear, with review
+            before publication and direct contact for the details that count.
+          </p>
+          <a href="/contact/" class="trust-contact-link">Talk to our team <span aria-hidden="true">↗</span></a>
+        </div>
+
+        <ol class="trust-steps">
+          <li>
+            <span class="trust-step-number">01</span>
+            <div>
+              <h3>Browse property listings</h3>
+              <p>Review the details shared for each property and explore photos where available.</p>
+            </div>
+          </li>
+          <li>
+            <span class="trust-step-number">02</span>
+            <div>
+              <h3>Listings reviewed before publishing</h3>
+              <p>Public property submissions are reviewed by the FHA team before they appear on the website.</p>
+            </div>
+          </li>
+          <li>
+            <span class="trust-step-number">03</span>
+            <div>
+              <h3>Confirm before you commit</h3>
+              <p>Contact the team to confirm current availability, terms, and property documentation before making a decision.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
     <SubmissionCTA />
   </main>
   <Footer />
@@ -150,6 +190,97 @@ try {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 22px;
+  }
+
+  .trust-section {
+    padding: 82px 0;
+    background: #f6f8fb;
+  }
+
+  .trust-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: clamp(38px, 7vw, 90px);
+  }
+
+  .trust-intro h2 {
+    max-width: 440px;
+    margin: 12px 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 650;
+    letter-spacing: -0.055em;
+    line-height: 1.1;
+  }
+
+  .trust-intro > p:not(.eyebrow) {
+    max-width: 440px;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .trust-contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    color: var(--color-brand);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .trust-contact-link span {
+    color: var(--color-gold);
+  }
+
+  .trust-steps {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .trust-steps li {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 18px;
+    padding: 0 0 24px;
+  }
+
+  .trust-steps li + li {
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .trust-step-number {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid rgb(18 59 112 / 18%);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-brand);
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .trust-steps h3 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .trust-steps p {
+    max-width: 510px;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.84rem;
+    line-height: 1.7;
   }
 
   .listings-empty {
@@ -201,6 +332,15 @@ try {
     .section-top {
       align-items: flex-start;
       flex-direction: column;
+    }
+
+    .trust-section {
+      padding: 60px 0;
+    }
+
+    .trust-inner {
+      grid-template-columns: 1fr;
+      gap: 34px;
     }
   }
 

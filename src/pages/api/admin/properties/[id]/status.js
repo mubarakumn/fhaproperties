@@ -121,7 +121,12 @@ export async function POST({ request, cookies, params }) {
     });
   } catch (error) {
     console.error("Property action failed:", error);
+    if (error?.name === "ValidationError") {
+      return json(
+        { error: `Property status could not be saved: ${error.message}` },
+        400,
+      );
+    }
     return json({ error: "Failed to update property." }, 500);
   }
 }
-

@@ -12,29 +12,65 @@
     </div>
 
     <div class="service-grid">
-      <a class="service-card" href="/services/property-sales/">
-        <span class="number">01</span>
-        <span class="service-icon" aria-hidden="true">⌂</span>
-        <h3>Buying &amp; Selling</h3>
-        <p>Explore land and residential or commercial properties with guidance through the buying and selling process.</p>
-        <span class="service-link">Explore service ↗</span>
-      </a>
+      <article class="service-card">
+        <figure class="service-image">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/1/11/Highrise_Blocks_C%2C_B_and_A_in_University_of_Lagos.jpg"
+            alt="Residential high-rise buildings at the University of Lagos, Nigeria"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>
+            Lagos · <a href="https://commons.wikimedia.org/wiki/File:Highrise_Blocks_C,_B_and_A_in_University_of_Lagos.jpg" target="_blank" rel="noopener noreferrer">Solasly / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>
+          </figcaption>
+        </figure>
+        <div class="service-card-copy">
+          <span class="number">01 / PROPERTY</span>
+          <h3>Buying &amp; Selling</h3>
+          <p>Explore land and residential or commercial properties with guidance through the buying and selling process.</p>
+          <a class="service-link" href="/services/property-sales/">Explore service <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
 
-      <a class="service-card" href="/services/construction-management/">
-        <span class="number">02</span>
-        <span class="service-icon" aria-hidden="true">▦</span>
-        <h3>Construction Management</h3>
-        <p>Project coordination, site supervision and construction management tailored to your building project.</p>
-        <span class="service-link">Explore service ↗</span>
-      </a>
+      <article class="service-card">
+        <figure class="service-image">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Building_construction_in_Abuja.jpg"
+            alt="Building under construction in Abuja, Nigeria"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>
+            Abuja · <a href="https://commons.wikimedia.org/wiki/File:Building_construction_in_Abuja.jpg" target="_blank" rel="noopener noreferrer">Anasskoko / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>
+          </figcaption>
+        </figure>
+        <div class="service-card-copy">
+          <span class="number">02 / PROJECTS</span>
+          <h3>Construction Management</h3>
+          <p>Project coordination, site supervision and construction management tailored to your building project.</p>
+          <a class="service-link" href="/services/construction-management/">Explore service <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
 
-      <a class="service-card" href="/services/exterior-construction/">
-        <span class="number">03</span>
-        <span class="service-icon" aria-hidden="true">◇</span>
-        <h3>Building Exteriors</h3>
-        <p>Exterior construction services focused on the appearance, finish and functionality of your building.</p>
-        <span class="service-link">Explore service ↗</span>
-      </a>
+      <article class="service-card">
+        <figure class="service-image">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/c/c8/National_Assembly_Building_with_Mace%2C_Abuja%2C_Nigeria.jpg"
+            alt="National Assembly building exterior in Abuja, Nigeria"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>
+            Abuja · <a href="https://commons.wikimedia.org/wiki/File:National_Assembly_Building_with_Mace,_Abuja,_Nigeria.jpg" target="_blank" rel="noopener noreferrer">Kabusa16 / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>
+          </figcaption>
+        </figure>
+        <div class="service-card-copy">
+          <span class="number">03 / BUILDING</span>
+          <h3>Building Exteriors</h3>
+          <p>Exterior construction services focused on the appearance, finish and functionality of your building.</p>
+          <a class="service-link" href="/services/exterior-construction/">Explore service <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
     </div>
   </div>
 </section>
@@ -76,45 +112,59 @@
   }
 
   .service-card {
-    position: relative;
-    display: flex;
-    min-height: 320px;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 30px;
+    min-width: 0;
+    overflow: hidden;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: #fff;
     box-shadow: 0 8px 26px rgb(21 38 61 / 5%);
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    transition: transform 180ms ease, box-shadow 180ms ease;
   }
 
   .service-card:hover {
     transform: translateY(-4px);
-    border-color: rgb(18 59 112 / 24%);
     box-shadow: var(--shadow-card-hover);
+  }
+
+  .service-image {
+    margin: 0;
+  }
+
+  .service-image img {
+    width: 100%;
+    height: 196px;
+    object-fit: cover;
+    background: var(--color-surface-soft);
+  }
+
+  .service-image figcaption {
+    padding: 8px 20px 0;
+    color: var(--color-slate-blue);
+    font-size: 0.65rem;
+  }
+
+  .service-image figcaption a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .service-card-copy {
+    display: flex;
+    min-height: 218px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 24px 24px;
   }
 
   .number {
     color: var(--color-brand);
     font-size: 0.72rem;
-  }
-
-  .service-icon {
-    margin-top: 22px;
-    display: grid;
-    width: 46px;
-    height: 46px;
-    place-items: center;
-    border-radius: 13px;
-    background: #eef3f9;
-    color: var(--color-brand);
-    font-family: Georgia, serif;
-    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
   }
 
   .service-card h3 {
-    margin: 20px 0 10px;
+    margin: 16px 0 10px;
     font-size: 1.24rem;
     font-weight: 650;
     letter-spacing: -0.03em;
@@ -129,9 +179,15 @@
 
   .service-link {
     margin-top: auto;
+    padding-top: 18px;
     color: var(--color-brand);
     font-size: 0.8rem;
     font-weight: 700;
+  }
+
+  .service-link span {
+    margin-left: 5px;
+    color: var(--color-gold);
   }
 
   @media (max-width: 760px) {
@@ -144,19 +200,43 @@
     }
 
     .service-card {
-      min-height: 280px;
-      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(140px, 0.85fr) minmax(0, 1fr);
     }
 
-    .service-icon {
-      margin-top: 12px;
+    .service-image img {
+      height: 100%;
+      min-height: 250px;
+    }
+
+    .service-image figcaption {
+      padding: 7px 12px 10px;
+      font-size: 0.6rem;
+    }
+
+    .service-card-copy {
+      min-height: 250px;
+      padding: 18px;
     }
   }
 
-  @media (max-width: 450px) {
-    .section-top {
-      align-items: flex-start;
-      flex-direction: column;
+  @media (max-width: 500px) {
+    .service-card {
+      display: block;
+    }
+
+    .service-image img {
+      height: 190px;
+      min-height: 0;
+    }
+
+    .service-image figcaption {
+      padding: 7px 16px 0;
+    }
+
+    .service-card-copy {
+      min-height: 0;
+      padding: 16px 20px 20px;
     }
   }
 </style>

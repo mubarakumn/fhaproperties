@@ -17,7 +17,7 @@ try {
 
   property = await Property.findOne({
     slug,
-    status: "published",
+    status: { $in: ["published", "sold"] },
   }).lean();
 } catch (error) {
   console.error("Failed to load property details:", error);
@@ -61,7 +61,9 @@ const propertyImages = Array.isArray(property?.images)
 const image = propertyImages[0] || null;
 
 const contactMessage = property
-  ? `Hello FHA Properties Management, I would like more information about ${property.title}${location ? ` in ${location}` : ""}.`
+  ? property.status === "sold"
+    ? `Hello FHA Properties Management, I saw that ${property.title}${location ? ` in ${location}` : ""} has been sold. Please help me find a similar property.`
+    : `Hello FHA Properties Management, I would like more information about ${property.title}${location ? ` in ${location}` : ""}.`
   : "";
 
 const whatsappPhone = "2348023456789";
@@ -81,10 +83,20 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
         <div class="property-heading">
           <div>
             <p class="eyebrow">
-              {property.listingType === "Rent" ? "PROPERTY FOR RENT" : "PROPERTY FOR SALE"}
+              {property.status === "sold"
+                ? "PROPERTY SOLD"
+                : property.listingType === "Rent"
+                  ? "PROPERTY FOR RENT"
+                  : "PROPERTY FOR SALE"}
             </p>
 
             <h1>{property.title}</h1>
+
+            {property.status === "sold" && (
+              <p class="sold-notice" role="status">
+                <span aria-hidden="true">✓</span> SOLD — THIS PROPERTY IS NO LONGER AVAILABLE
+              </p>
+            )}
 
             <p class="location">
               <span aria-hidden="true">⌖</span> {location || "Location available on request"}
@@ -178,12 +190,24 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
           </article>
 
           <aside class="contact-card">
-            <p class="eyebrow">INTERESTED IN THIS PROPERTY?</p>
-            <h2>Let's help you take the next step.</h2>
-            <p>
-              Contact our team to confirm availability, pricing, documentation
-              and viewing arrangements.
-            </p>
+            {property.status === "sold" ? (
+              <>
+                <p class="eyebrow">PROPERTY SOLD</p>
+                <h2>This property is no longer available.</h2>
+                <p>
+                  Contact our team and we can help you find a similar property.
+                </p>
+              </>
+            ) : (
+              <>
+                <p class="eyebrow">INTERESTED IN THIS PROPERTY?</p>
+                <h2>Let's help you take the next step.</h2>
+                <p>
+                  Contact our team to confirm availability, pricing, documentation
+                  and viewing arrangements.
+                </p>
+              </>
+            )}
 
             <a
               class="contact-button whatsapp-contact-button"
@@ -252,6 +276,21 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
     padding: 44px 0 96px;
     color: var(--color-ink);
     background: linear-gradient(180deg, #fff, #f8fafd 38%, #fff);
+  }
+
+  .sold-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin: 14px 0 0;
+    padding: 10px 14px;
+    border: 2px solid #8b1e24;
+    border-radius: 8px;
+    background: #fff1f1;
+    color: #8b1e24;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
   }
 
   .back-link {
