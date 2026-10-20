@@ -1,18 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --color-brand: #01316d;
-  --color-brand-deep: #06295f;
-  --color-brand-mid: #274371;
-  --color-gold: #c8981f;
-  --color-sand: #d0bc89;
-  --color-ink: #1d1c1a;
+  color-scheme: light;
+  --color-brand: #123b70;
+  --color-brand-deep: #0b2b52;
+  --color-brand-mid: #34557e;
+  --color-gold: #b98719;
+  --color-sand: #d9c28e;
+  --color-ink: #182230;
   --color-ivory: #ffffff;
-  --color-border: #e2e5e9;
-  --color-muted: #4b4846;
-  --color-slate: #a1a9b6;
-  --color-slate-blue: #607089;
-  --color-gray: #848689;
+  --color-page: #f6f8fb;
+  --color-surface-soft: #f1f4f8;
+  --color-border: #e4e9f0;
+  --color-muted: #515e6f;
+  --color-slate: #b5bfcc;
+  --color-slate-blue: #64748b;
+  --color-gray: #7b8796;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-card: 0 8px 26px rgb(21 38 61 / 6%);
+  --shadow-card-hover: 0 16px 38px rgb(21 38 61 / 12%);
   --color-whatsapp: #25d366;
   --color-whatsapp-dark: #075e54;
   --color-whatsapp-deep: #064e45;
@@ -24,14 +32,18 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 120px;
 }
 
 body {
   margin: 0;
   color: var(--color-ink);
   background: var(--color-ivory);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -50,6 +62,49 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+button:not(:disabled),
+select {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button,
+input,
+select,
+textarea {
+  accent-color: var(--color-brand);
+}
+
+input,
+select,
+textarea {
+  color: var(--color-ink);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  border-radius: var(--radius-sm);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8491a2;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid rgb(185 135 25 / 62%);
+  outline-offset: 3px;
+}
+
 img {
   display: block;
   max-width: 100%;
@@ -64,7 +119,7 @@ img {
   color: var(--color-brand);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -72,8 +127,8 @@ img {
   max-width: 650px;
   margin: 10px 0 14px;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 500;
-  letter-spacing: -0.045em;
+  font-weight: 600;
+  letter-spacing: -0.04em;
   line-height: 1.12;
 }
 
@@ -84,21 +139,24 @@ img {
 
 .btn {
   display: inline-flex;
-  min-height: 48px;
+  min-height: 50px;
   align-items: center;
   justify-content: center;
   padding: 0 22px;
   border: 1px solid var(--color-brand);
+  border-radius: var(--radius-sm);
   background: var(--color-brand);
   color: var(--color-ivory);
   font-size: 0.88rem;
   font-weight: 600;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .btn:hover {
   background: var(--color-brand-deep);
   border-color: var(--color-brand-deep);
+  box-shadow: 0 6px 16px rgb(18 59 112 / 18%);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -108,10 +166,30 @@ img {
 }
 
 .btn-outline:hover {
-  background: var(--color-ivory);
+  background: var(--color-surface-soft);
+}
+
+::selection {
+  background: rgb(185 135 25 / 22%);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 640px) {
+  html {
+    scroll-padding-top: 190px;
+  }
+
   .container {
     width: calc(100% - 32px);
   }

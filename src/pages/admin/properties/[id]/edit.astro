@@ -407,8 +407,8 @@ const featuresString = Array.isArray(property.features)
   :root {
     --gold: var(--color-gold);
     --ink: var(--color-ink);
-    --bg-page: var(--color-ivory);
-    --card-bg: var(--color-ivory);
+    --bg-page: var(--color-page);
+    --card-bg: #fff;
     --border: var(--color-border);
     --muted: var(--color-muted);
     --red: var(--color-brand-deep);
@@ -424,13 +424,14 @@ const featuresString = Array.isArray(property.features)
 
   /* ── Topbar ── */
   .edit-topbar {
-    background: var(--color-brand);
+    background: linear-gradient(110deg, var(--color-brand-deep), var(--color-brand));
     color: var(--color-ivory);
     padding: 16px 24px;
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid rgb(239 240 235 / 16%);
+    border-bottom: 1px solid rgb(255 255 255 / 14%);
+    box-shadow: 0 8px 24px rgb(11 43 82 / 16%);
   }
 
   .topbar-inner {
@@ -500,9 +501,10 @@ const featuresString = Array.isArray(property.features)
 
   .page-header h1 {
     margin: 0 0 8px;
-    font-family: Georgia, serif;
-    font-size: clamp(2rem, 3.5vw, 2.6rem);
-    letter-spacing: -0.03em;
+    font-family: inherit;
+    font-size: clamp(2.1rem, 3.5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
   }
 
   .subhead {
@@ -543,9 +545,9 @@ const featuresString = Array.isArray(property.features)
   .form-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     padding: 28px;
-    box-shadow: 0 2px 6px rgb(29 28 26 / 2%);
+    box-shadow: var(--shadow-card);
   }
 
   .card-head {

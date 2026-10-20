@@ -197,10 +197,10 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
             <div class="property-phone-box">
               <span class="phone-box-label">Or call directly:</span>
               <div class="property-phones">
-                <a href="tel:+2348023456789" class="prop-tel-link">
+                <a href="tel:+2348039145619" class="prop-tel-link">
                   📞 +234 803 914 5619
                 </a>
-                <a href="tel:+2348134567890" class="prop-tel-link">
+                <a href="tel:+2349066715348" class="prop-tel-link">
                   📞 +234 906 671 5348
                 </a>
               </div>
@@ -249,13 +249,18 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
   }
 
   .property-page {
-    padding: 36px 0 90px;
+    padding: 44px 0 96px;
     color: var(--color-ink);
+    background: linear-gradient(180deg, #fff, #f8fafd 38%, #fff);
   }
 
   .back-link {
     display: inline-block;
-    margin-bottom: 34px;
+    margin-bottom: 28px;
+    padding: 9px 13px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #fff;
     color: var(--color-slate-blue);
     font-size: 0.9rem;
     text-decoration: none;
@@ -283,9 +288,10 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
 
   h1 {
     margin: 12px 0;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    line-height: 1.12;
-    letter-spacing: -0.045em;
+    font-size: clamp(2.3rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.065em;
   }
 
   .location {
@@ -313,8 +319,9 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
   .property-image {
     overflow: hidden;
     aspect-ratio: 16 / 8;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     background: var(--color-ivory);
+    box-shadow: var(--shadow-card);
   }
 
   .property-image.image-unavailable {
@@ -383,14 +390,18 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
   .property-facts {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
     padding-bottom: 30px;
     border-bottom: 1px solid var(--color-border);
   }
 
   .fact {
     display: grid;
-    gap: 8px;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
   }
 
   .fact strong {
@@ -425,10 +436,13 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
   }
 
   .contact-card {
+    position: sticky;
+    top: 150px;
     padding: 28px;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     background: var(--color-ivory);
+    box-shadow: var(--shadow-card);
   }
 
   .contact-card h2 {
@@ -440,7 +454,7 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
     display: block;
     margin-top: 24px;
     padding: 15px 18px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: var(--color-brand);
     color: var(--color-ivory);
     text-align: center;
@@ -531,6 +545,7 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
 
     .contact-card {
       max-width: 520px;
+      position: static;
     }
   }
 

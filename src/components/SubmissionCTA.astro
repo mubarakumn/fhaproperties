@@ -18,8 +18,8 @@
 
 <style>
   .submission-section {
-    padding: 76px 0;
-    background: var(--color-ivory);
+    padding: 86px 0;
+    background: #f6f8fb;
   }
 
   .submission-box {
@@ -27,8 +27,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    padding: 45px;
-    background: var(--color-brand);
+    padding: clamp(28px, 5vw, 54px);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 88% 0%, rgb(255 255 255 / 12%), transparent 32%),
+      linear-gradient(125deg, #123b70, #0b2b52);
+    box-shadow: 0 20px 50px rgb(11 43 82 / 18%);
     color: var(--color-ivory);
   }
 
@@ -38,10 +42,10 @@
 
   h2 {
     margin: 15px 0 10px;
-    font-family: Georgia, serif;
+    font-family: inherit;
     font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 400;
-    letter-spacing: -0.04em;
+    font-weight: 700;
+    letter-spacing: -0.055em;
   }
 
   p {
@@ -57,6 +61,7 @@
     background: var(--color-gold);
     border-color: var(--color-gold);
     color: var(--color-ink);
+    border-radius: 999px;
   }
 
   .btn:hover {
@@ -69,7 +74,7 @@
 
   @media (max-width: 640px) {
     .submission-section {
-      padding: 48px 0;
+      padding: 56px 0;
     }
 
     .submission-box {

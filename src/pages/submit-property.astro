@@ -458,10 +458,10 @@ import Footer from "../components/Footer.astro";
             <p class="contact-label">Need Assistance?</p>
             <p>Our team is available to help with submissions:</p>
             <div class="sidebar-contact-lines">
-              <a href="tel:+2348023456789" class="sidebar-phone-link">
+              <a href="tel:+2348039145619" class="sidebar-phone-link">
                 📞 +234 803 914 5619
               </a>
-              <a href="tel:+2348134567890" class="sidebar-phone-link">
+              <a href="tel:+2349066715348" class="sidebar-phone-link">
                 📞 +234 906 671 5348
               </a>
               <a
@@ -496,9 +496,11 @@ import Footer from "../components/Footer.astro";
 
   /* ── Page hero ── */
   .page-hero {
-    background: var(--color-brand);
+    background:
+      radial-gradient(circle at 88% 6%, rgb(255 255 255 / 12%), transparent 28%),
+      linear-gradient(120deg, var(--color-brand-deep), var(--color-brand));
     color: var(--color-ivory);
-    padding: 64px 0 56px;
+    padding: 72px 0 64px;
     overflow: hidden;
   }
 
@@ -506,7 +508,7 @@ import Footer from "../components/Footer.astro";
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 40px;
+    gap: 48px;
     flex-wrap: wrap;
   }
 
@@ -522,16 +524,16 @@ import Footer from "../components/Footer.astro";
 
   .page-hero h1 {
     margin: 0 0 14px;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(2.6rem, 5vw, 4.2rem);
-    font-weight: 400;
-    letter-spacing: -0.055em;
+    font-family: inherit;
+    font-size: clamp(2.8rem, 5.6vw, 4.8rem);
+    font-weight: 700;
+    letter-spacing: -0.07em;
     line-height: 1.02;
     color: var(--color-ivory);
   }
 
   .page-hero h1 em {
-    color: var(--color-gold);
+    color: #f1cf76;
     font-style: normal;
   }
 
@@ -546,9 +548,14 @@ import Footer from "../components/Footer.astro";
   .hero-trust {
     display: flex;
     flex-direction: column;
-    gap: 11px;
+    gap: 12px;
     padding-bottom: 6px;
     flex-shrink: 0;
+    padding: 20px 22px;
+    border: 1px solid rgb(255 255 255 / 15%);
+    border-radius: var(--radius-md);
+    background: rgb(255 255 255 / 8%);
+    backdrop-filter: blur(8px);
   }
 
   .trust-item {
@@ -579,7 +586,7 @@ import Footer from "../components/Footer.astro";
     grid-template-columns: 1fr 340px;
     align-items: start;
     gap: 40px;
-    padding-top: 52px;
+    padding-top: 60px;
     padding-bottom: 100px;
   }
 
@@ -591,8 +598,9 @@ import Footer from "../components/Footer.astro";
     text-align: center;
     padding: 64px 40px;
     border: 1px solid var(--color-border);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: var(--color-ivory);
+    box-shadow: var(--shadow-card);
   }
 
   .success-icon {
@@ -601,10 +609,10 @@ import Footer from "../components/Footer.astro";
 
   .success-screen h2 {
     margin: 0 0 14px;
-    font-family: Georgia, serif;
+    font-family: inherit;
     font-size: 2rem;
-    font-weight: 400;
-    letter-spacing: -0.035em;
+    font-weight: 700;
+    letter-spacing: -0.055em;
   }
 
   .success-screen > p {
@@ -620,7 +628,7 @@ import Footer from "../components/Footer.astro";
     justify-content: center;
     min-height: 50px;
     padding: 0 28px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: var(--color-brand);
     color: var(--color-ivory);
     font-size: 0.9rem;
@@ -666,9 +674,10 @@ import Footer from "../components/Footer.astro";
   .form-section {
     padding: clamp(28px, 4vw, 42px);
     border: 1px solid var(--color-border);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: var(--color-ivory);
     margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
   }
 
   .section-header {
@@ -699,9 +708,9 @@ import Footer from "../components/Footer.astro";
 
   .section-header h2 {
     margin: 0 0 5px;
-    font-family: Georgia, serif;
+    font-family: inherit;
     font-size: 1.35rem;
-    font-weight: 400;
+    font-weight: 700;
     letter-spacing: -0.025em;
   }
 

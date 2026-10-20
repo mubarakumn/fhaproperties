@@ -757,8 +757,8 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     --gold: var(--color-gold);
     --gold-light: rgb(200 152 31 / 12%);
     --ink: var(--color-ink);
-    --bg-page: var(--color-ivory);
-    --card-bg: var(--color-ivory);
+    --bg-page: var(--color-page);
+    --card-bg: #fff;
     --border: var(--color-border);
     --muted: var(--color-muted);
     --green: var(--color-brand);
@@ -770,15 +770,16 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     background: var(--bg-page);
     color: var(--ink);
     font-family: inherit;
-    padding-bottom: 80px;
+    padding-bottom: 96px;
   }
 
   /* ── Topbar ── */
   .dashboard-topbar {
-    background: var(--color-brand);
+    background: linear-gradient(110deg, var(--color-brand-deep), var(--color-brand));
     color: var(--color-ivory);
-    border-bottom: 1px solid rgb(239 240 235 / 16%);
-    padding: 16px 24px;
+    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    padding: 12px 24px;
+    box-shadow: 0 8px 24px rgb(11 43 82 / 16%);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -806,9 +807,9 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     display: block;
     width: 118px;
     height: auto;
-    padding: 3px 4px;
+    padding: 4px 6px;
     background: var(--color-ivory);
-    border-radius: 2px;
+    border-radius: 6px;
   }
 
   .brand-tag {
@@ -878,7 +879,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   /* ── Content Container ── */
   .admin-content {
     max-width: 1240px;
-    margin: 36px auto 0;
+    margin: 42px auto 0;
     padding: 0 20px;
   }
 
@@ -903,9 +904,10 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .dashboard-head h1 {
     margin: 0 0 8px;
-    font-family: Georgia, serif;
-    font-size: clamp(2rem, 3.5vw, 2.7rem);
-    letter-spacing: -0.035em;
+    font-family: inherit;
+    font-size: clamp(2.1rem, 3.5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
   }
 
   .lead {
@@ -950,12 +952,12 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    min-height: 58px;
+    min-height: 76px;
     background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 9px;
+    border-radius: var(--radius-sm);
     text-align: left;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 16px rgb(21 38 61 / 4%);
     box-sizing: border-box;
   }
 
@@ -1043,7 +1045,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .tab-btn.active {
     color: var(--ink);
-    border-bottom-color: var(--gold);
+    border-bottom-color: var(--color-brand);
   }
 
   .tab-badge {
@@ -1056,13 +1058,15 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   }
 
   .tab-btn.active .tab-badge {
-    background: var(--gold);
+    background: var(--color-brand);
     color: var(--color-ivory);
   }
 
   /* ── Tab Panes ── */
   .tab-pane {
     display: none;
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .tab-pane.active {
@@ -1081,9 +1085,10 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .pane-header h2 {
     margin: 0 0 4px;
-    font-family: Georgia, serif;
-    font-size: 1.45rem;
-    letter-spacing: -0.02em;
+    font-family: inherit;
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
   }
 
   .pane-header p {
@@ -1113,9 +1118,10 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   .empty-box {
     padding: 56px 24px;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     background: var(--card-bg);
     text-align: center;
+    box-shadow: var(--shadow-card);
   }
 
   .empty-symbol {
@@ -1138,8 +1144,9 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   .other-listings-wrap {
     overflow-x: auto;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--card-bg);
+    box-shadow: var(--shadow-card);
   }
 
   .admin-listings-table,
@@ -1162,7 +1169,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .admin-listings-table th,
   .other-listings-table th {
-    background: var(--color-ivory);
+    background: var(--color-surface-soft);
     color: var(--muted);
     font-size: 0.7rem;
     font-weight: 700;
@@ -1780,6 +1787,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 26px;
+    box-shadow: var(--shadow-card);
   }
 
   .form-box-head {
@@ -1807,8 +1815,9 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
   .form-box-head h3 {
     margin: 0 0 4px;
-    font-family: Georgia, serif;
+    font-family: inherit;
     font-size: 1.15rem;
+    letter-spacing: -0.035em;
   }
 
   .form-box-head p {
