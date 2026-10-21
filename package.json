@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "admin:create": "node scripts/manage-admin.js create",
     "admin:password": "node scripts/manage-admin.js password",
+    "properties:demo-reset": "node scripts/reset-properties-to-demo.js",
     "astro": "astro"
   },
   "dependencies": {

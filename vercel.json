@@ -1,5 +1,11 @@
 {
   "framework": "astro",
+  "crons": [
+    {
+      "path": "/api/cron/daily-visit-summary",
+      "schedule": "0 8 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

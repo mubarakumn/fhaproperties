@@ -21,6 +21,26 @@ const {
   <body>
     <slot />
 
+    <script>
+      const path = window.location.pathname;
+      if (
+        navigator.doNotTrack !== "1" &&
+        !path.startsWith("/admin") &&
+        !path.startsWith("/api/") &&
+        !path.startsWith("/_astro/")
+      ) {
+        fetch("/api/analytics/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path }),
+          credentials: "same-origin",
+          keepalive: true,
+        }).catch((error) => {
+          console.error("Could not record anonymous site page view:", error);
+        });
+      }
+    </script>
+
     <!-- ── Floating WhatsApp Button ── -->
     <a
       href="https://wa.me/2348039145619?text=Hello%20FHA%20Properties%20Management%2C%20I%20would%20like%20to%20make%20an%20enquiry."

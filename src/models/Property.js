@@ -148,5 +148,13 @@ propertySchema.index({
   listingType: 1,
 });
 
+const cachedPropertyModel = mongoose.models.Property;
+const cachedStatusValues =
+  cachedPropertyModel?.schema.path("status")?.enumValues || [];
+
+if (cachedPropertyModel && !cachedStatusValues.includes("sold")) {
+  mongoose.deleteModel("Property");
+}
+
 export default mongoose.models.Property ||
   mongoose.model("Property", propertySchema);

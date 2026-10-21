@@ -5,6 +5,7 @@ import {
 } from "../../../../../lib/adminAuth.js";
 import { connectDB } from "../../../../../lib/db.js";
 import Property from "../../../../../models/Property.js";
+import { sendPropertyApprovedNotice } from "../../../../../lib/email.js";
 
 export const prerender = false;
 
@@ -66,7 +67,7 @@ export async function POST({ request, cookies, params }) {
       { $set: update },
       { new: true, runValidators: true },
     )
-      .select("_id title slug status")
+      .select("_id title slug status submittedBy")
       .lean();
 
     if (!property) {
@@ -77,6 +78,19 @@ export async function POST({ request, cookies, params }) {
         },
         409,
       );
+    }
+
+    if (action === "publish") {
+      const propertyUrl = `${process.env.PUBLIC_SITE_URL?.trim() || "https://www.fhaproperties.com"}/properties/${property.slug}/`;
+      const emailResult = await sendPropertyApprovedNotice({
+        to: property.submittedBy?.email,
+        propertyTitle: property.title,
+        propertyUrl,
+      });
+
+      if (emailResult.ok === false && emailResult.skipped !== true) {
+        console.error("Property approval email failed:", emailResult.error || "unknown error");
+      }
     }
 
     return json({

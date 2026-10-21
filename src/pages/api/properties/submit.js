@@ -10,10 +10,14 @@ import {
   readPropertyImage,
 } from "../../../lib/propertyImages.js";
 import Property from "../../../models/Property.js";
+import {
+  sendPropertySubmissionConfirmation,
+  sendPropertySubmissionOwnerNotice,
+} from "../../../lib/email.js";
 
 export const prerender = false;
 
-const WINDOW_MS = 15 * 60 * 1000;
+const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_REQUESTS = 5;
 const allowedPropertyTypes = new Set([
   "House",
@@ -224,6 +228,29 @@ export async function POST({ request }) {
         email,
       },
     });
+
+    const [confirmationResult, ownerNoticeResult] = await Promise.allSettled([
+      sendPropertySubmissionConfirmation({
+        to: email,
+        propertyTitle: title,
+        propertyId: property._id.toString(),
+      }),
+      sendPropertySubmissionOwnerNotice({
+        propertyTitle: title,
+        submitterName: name,
+        submitterEmail: email,
+        submitterPhone: phone,
+        propertyId: property._id.toString(),
+      }),
+    ]);
+
+    if (confirmationResult.status === "rejected") {
+      console.error("Property submission confirmation email failed:", confirmationResult.reason);
+    }
+
+    if (ownerNoticeResult.status === "rejected") {
+      console.error("Owner submission email failed:", ownerNoticeResult.reason);
+    }
 
     return json(
       {

@@ -5,15 +5,22 @@ interface Props {
   buttonLabel?: string;
 }
 
-const { states, buttonLabel = "Search properties" } = Astro.props;
+const {
+  states,
+  buttonLabel = "Search properties",
+} = Astro.props;
 ---
 
 <form class="filters" id="property-filters" action="/properties/" method="GET">
   <label>
     <span>Location</span>
     <select name="state" id="filter-state">
-      <option value="">All states</option>
-      {states.map((state) => <option value={state}>{state}</option>)}
+      <option value="">All locations</option>
+      {states.length > 0 ? (
+        states.map((state) => <option value={state}>{state}</option>)
+      ) : (
+        <option value="" disabled>No locations with current listings</option>
+      )}
     </select>
   </label>
 
