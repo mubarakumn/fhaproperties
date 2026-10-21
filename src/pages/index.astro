@@ -1,41 +1,48 @@
-
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
 import PropertySearch from "../components/PropertySearch.astro";
 import PropertyCard from "../components/PropertyCard.astro";
+import LocationShowcase from "../components/LocationShowcase.astro";
 import Services from "../components/Services.astro";
 import SubmissionCTA from "../components/SubmissionCTA.astro";
 import Footer from "../components/Footer.astro";
 import { connectDB } from "../lib/db.js";
+import {
+  getPropertyLocationSummaries,
+} from "../lib/propertyLocations.js";
 import Property from "../models/Property.js";
 
 let featuredProperties = [];
+let locationProperties = [];
 let states = [];
 let listingsUnavailable = false;
 
 try {
   await connectDB();
-  featuredProperties = await Property.find({ status: { $in: ["published", "sold"] } })
+  featuredProperties = await Property.find({
+    status: { $in: ["published", "sold"] },
+  })
     .sort({ publishedAt: -1, createdAt: -1 })
     .limit(3)
     .lean();
-  try {
-    const propertyStates = await Property.distinct("state", {
-      status: { $in: ["published", "sold"] },
-    });
-    states = [...new Set(propertyStates.filter(Boolean))].sort();
-  } catch (error) {
-    console.error("Failed to load homepage property locations:", error);
-    states = [
-      ...new Set(featuredProperties.map((property) => property.state).filter(Boolean)),
-    ].sort();
-  }
+
+  const propertyStates = await Property.distinct("state", {
+    status: { $in: ["published", "sold"] },
+  });
+  states = [...new Set(propertyStates.filter(Boolean))].sort();
+  locationProperties = await Property.find({
+    status: { $in: ["published", "sold"] },
+  })
+    .select("city state")
+    .lean();
 } catch (error) {
   console.error("Failed to load homepage properties:", error);
   listingsUnavailable = true;
 }
+
+const locationSummaries = getPropertyLocationSummaries(locationProperties);
 ---
 
 <BaseLayout>
@@ -47,6 +54,12 @@ try {
       <PropertySearch states={states} />
     </div>
 
+    <LocationShowcase
+      locations={locationSummaries}
+      heading="Explore properties across Nigeria"
+      eyebrow="Browse by location"
+    />
+
     <section class="featured-section">
       <div class="container">
         <div class="section-top">
@@ -54,8 +67,7 @@ try {
             <span class="eyebrow">Explore opportunities</span>
             <h2 class="section-heading">Find your next property.</h2>
             <p class="section-description">
-              Discover residential, commercial and land opportunities
-              across Nigeria.
+              Discover residential, commercial and land opportunities across Nigeria.
             </p>
           </div>
           <a class="text-link" href="/properties/">View all properties <span>→</span></a>

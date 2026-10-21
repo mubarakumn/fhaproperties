@@ -5,7 +5,9 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import PropertyCard from "../../components/PropertyCard.astro";
 import PropertySearch from "../../components/PropertySearch.astro";
+import LocationShowcase from "../../components/LocationShowcase.astro";
 import { connectDB } from "../../lib/db.js";
+import { getPropertyLocationSummaries } from "../../lib/propertyLocations.js";
 import Property from "../../models/Property.js";
 
 let properties = [];
@@ -27,6 +29,7 @@ try {
 const states = [
   ...new Set(properties.map((property) => property.state).filter(Boolean)),
 ].sort();
+const locationSummaries = getPropertyLocationSummaries(properties);
 ---
 
 <BaseLayout
@@ -46,6 +49,12 @@ const states = [
         </p>
       </div>
     </section>
+
+    <LocationShowcase
+      locations={locationSummaries}
+      heading="Browse property locations"
+      eyebrow="Explore by location"
+    />
 
     <section class="container listings-section">
       <PropertySearch states={states} buttonLabel="Filter properties" />
@@ -70,6 +79,7 @@ const states = [
             <div
               class="property-item"
               data-state={property.state || ""}
+              data-city={property.city || ""}
               data-type={property.type || ""}
               data-listing={property.listingType || ""}
             >
@@ -239,12 +249,23 @@ const states = [
   typeFilter.value = searchParams.get("type") || "";
   listingFilter.value = searchParams.get("listingType") || "";
 
+  function normalizeLocation(value) {
+    return value
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
   function applyFilters() {
     let visible = 0;
+    const selectedState = normalizeLocation(stateFilter.value);
 
     for (const item of items) {
       const matchesState =
-        !stateFilter.value || item.dataset.state === stateFilter.value;
+        !selectedState ||
+        normalizeLocation(item.dataset.state || "") === selectedState;
 
       const matchesType =
         !typeFilter.value || item.dataset.type === typeFilter.value;

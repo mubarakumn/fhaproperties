@@ -95,3 +95,29 @@ npm run admin:password
 ```
 
 Both commands prompt for passwords without displaying them. Passwords must be 12 to 128 characters and are stored as bcrypt hashes. Changing the password invalidates all existing sessions. Admin sessions are random, database-backed tokens; only their SHA-256 hashes are stored. Restrict database access and use HTTPS in production.
+
+## Replacing property records with demo drafts
+
+The demo reset replaces every record in the `Property` collection with 15
+fictional, unpublished sample records. Each title and description identifies
+the data as fictional; no prices, addresses, or property images are invented.
+Do not publish these records or present them as available properties.
+
+First preview the database selected by `MONGODB_URI` and the current property
+count:
+
+```sh
+npm run properties:demo-reset
+```
+
+To apply the replacement, use the exact database name printed by the preview
+and a new backup path outside the repository. The operation requires a
+MongoDB deployment that supports transactions:
+
+```sh
+npm run properties:demo-reset -- --apply --confirm-db=<database-name> --backup-file=<secure-path>
+```
+
+The script refuses to apply changes without the exact database confirmation
+and a new backup path. The backup contains existing property records and may
+include submitter contact details; store it securely and do not commit it.
