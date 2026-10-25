@@ -66,6 +66,17 @@ import Footer from "../components/Footer.astro";
 
         <!-- The form -->
         <form id="property-form" class="submission-form" novalidate>
+          <nav class="form-progress" aria-label="Submission steps">
+            <a href="#section-property" class="progress-step" data-progress-step="section-property" aria-current="step">
+              <span>01</span><strong>Property details</strong>
+            </a>
+            <a href="#section-images" class="progress-step" data-progress-step="section-images">
+              <span>02</span><strong>Photos &amp; video</strong>
+            </a>
+            <a href="#section-contact" class="progress-step" data-progress-step="section-contact">
+              <span>03</span><strong>Your contact</strong>
+            </a>
+          </nav>
 
           <!-- ── Section 1: Property details ── -->
           <section class="form-section" id="section-property">
@@ -208,6 +219,41 @@ import Footer from "../components/Footer.astro";
                 </div>
               </div>
 
+              <div class="field-group">
+                <label for="f-agent-fee">Buyer-paid agent fee / commission (%)</label>
+                <input
+                  id="f-agent-fee"
+                  name="agentFeePercent"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value="0"
+                  placeholder="e.g. 5 or 10"
+                />
+                <p class="field-hint">
+                  This percentage is added to the asking price and included in
+                  the total shown to buyers. Enter 0 if no fee applies.
+                </p>
+              </div>
+
+              <div id="f-price-preview" class="price-preview" aria-live="polite" hidden>
+                <p class="price-preview-title">Buyer-facing price estimate</p>
+                <div class="price-preview-line">
+                  <span>Asking price</span>
+                  <strong id="f-preview-asking"></strong>
+                </div>
+                <div id="f-preview-fee-row" class="price-preview-line" hidden>
+                  <span id="f-preview-fee-label">Agent fee</span>
+                  <strong id="f-preview-fee"></strong>
+                </div>
+                <div class="price-preview-total">
+                  <span>Estimated total for buyer</span>
+                  <strong id="f-preview-total"></strong>
+                </div>
+                <p id="f-preview-note" class="price-preview-note"></p>
+              </div>
+
               <div class="field-divider"></div>
               <p class="field-group-label">Property specs <span class="optional-tag">optional</span></p>
 
@@ -313,6 +359,39 @@ import Footer from "../components/Footer.astro";
               <div class="img-status-row">
                 <span id="img-counter" class="img-counter">0 / 5 images</span>
                 <span id="img-limit-msg" class="img-limit-msg" hidden>Limit reached — remove an image to add more.</span>
+              </div>
+
+              <div class="video-upload-card">
+                <div>
+                  <h3>Show the property in a video <span class="optional-tag">optional</span></h3>
+                  <p>Add a YouTube or Vimeo link, a direct MP4/WebM link, or upload a short video.</p>
+                </div>
+                <div class="field-group">
+                  <label for="f-video-url">Video link</label>
+                  <input
+                    id="f-video-url"
+                    name="videoUrl"
+                    type="url"
+                    maxlength="2048"
+                    placeholder="https://youtu.be/… or https://vimeo.com/…"
+                    autocomplete="url"
+                  />
+                  <p class="field-hint">Supported links: YouTube, Vimeo, MP4, or WebM.</p>
+                </div>
+                <div class="field-group">
+                  <label for="f-video-file">Or upload a video</label>
+                  <input
+                    id="f-video-file"
+                    name="videoFile"
+                    type="file"
+                    accept="video/mp4,video/webm"
+                  />
+                  <p class="field-hint">MP4 or WebM, up to 4 MB. Uploading a video replaces the link.</p>
+                </div>
+                <div id="f-video-preview" class="video-preview" hidden>
+                  <video controls muted playsinline preload="metadata"></video>
+                  <button id="f-video-remove" type="button" class="remove-video-button">Remove selected video</button>
+                </div>
               </div>
 
             </div>
@@ -671,6 +750,68 @@ import Footer from "../components/Footer.astro";
     gap: 0;
   }
 
+  .form-progress {
+    position: sticky;
+    top: 120px;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 20px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 94%);
+    box-shadow: 0 8px 24px rgb(29 28 26 / 8%);
+    backdrop-filter: blur(12px);
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--color-muted);
+    text-decoration: none;
+    transition: background 160ms, color 160ms;
+  }
+
+  .progress-step > span {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .progress-step strong {
+    overflow: hidden;
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .progress-step[aria-current="step"] {
+    background: rgb(1 49 109 / 8%);
+    color: var(--color-brand-deep);
+  }
+
+  .progress-step[aria-current="step"] > span {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: white;
+  }
+
+  .form-section {
+    scroll-margin-top: 190px;
+  }
+
   .form-section {
     padding: clamp(28px, 4vw, 42px);
     border: 1px solid var(--color-border);
@@ -749,6 +890,69 @@ import Footer from "../components/Footer.astro";
     margin: 0;
     color: var(--color-gray);
     font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .price-preview {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgb(1 49 109 / 16%);
+    border-radius: 10px;
+    background: rgb(1 49 109 / 4%);
+  }
+
+  .price-preview[hidden],
+  .price-preview-line[hidden] {
+    display: none;
+  }
+
+  .price-preview-title,
+  .price-preview-note {
+    margin: 0;
+  }
+
+  .price-preview-title {
+    color: var(--color-brand-deep);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .price-preview-line,
+  .price-preview-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .price-preview-line {
+    color: var(--color-slate-blue);
+    font-size: 0.84rem;
+  }
+
+  .price-preview-line strong,
+  .price-preview-total strong {
+    color: var(--color-ink);
+    text-align: right;
+  }
+
+  .price-preview-total {
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-brand-deep);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .price-preview-total strong {
+    color: var(--color-brand-deep);
+    font-size: 1.05rem;
+  }
+
+  .price-preview-note {
+    color: var(--color-gray);
+    font-size: 0.76rem;
     line-height: 1.5;
   }
 
@@ -1108,6 +1312,52 @@ import Footer from "../components/Footer.astro";
     font-weight: 600;
   }
 
+  .video-upload-card {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff, #f7f9fc);
+  }
+
+  .video-upload-card h3 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+  }
+
+  .video-upload-card > div:first-child p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .video-preview {
+    display: grid;
+    gap: 10px;
+    max-width: 600px;
+  }
+
+  .video-preview video {
+    width: 100%;
+    max-height: 320px;
+    border-radius: 8px;
+    background: #101820;
+  }
+
+  .remove-video-button {
+    justify-self: start;
+    padding: 7px 11px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--color-brand-deep);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
   /* ── Form footer ── */
   .form-footer {
     padding: clamp(24px, 4vw, 36px);
@@ -1452,6 +1702,26 @@ import Footer from "../components/Footer.astro";
     .form-section {
       padding: 22px 18px;
     }
+
+    .form-progress {
+      top: 120px;
+      gap: 4px;
+      padding: 6px;
+    }
+
+    .progress-step {
+      justify-content: center;
+      padding: 7px 4px;
+    }
+
+    .progress-step > span {
+      width: 26px;
+      height: 26px;
+    }
+
+    .progress-step strong {
+      display: none;
+    }
   }
 </style>
 
@@ -1460,6 +1730,11 @@ import Footer from "../components/Footer.astro";
     preparePropertyImages,
     PropertyImagePreparationError,
   } from "../lib/propertyImageClient.js";
+  import { uploadPropertyVideoFile } from "../lib/propertyVideoClient.js";
+  import {
+    formatNaira,
+    getPropertyPriceBreakdown,
+  } from "../lib/propertyPricing.js";
 
   const MAX_IMAGES = 5;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -1477,13 +1752,156 @@ import Footer from "../components/Footer.astro";
   const imgCounter  = document.querySelector("#img-counter");
   const descTA      = document.querySelector("#f-description");
   const descCount   = document.querySelector("#desc-count");
+  const priceInput = document.querySelector<HTMLInputElement>("#f-price");
+  const agentFeeInput = document.querySelector<HTMLInputElement>("#f-agent-fee");
+  const pricePreview = document.querySelector("#f-price-preview");
+  const previewAsking = document.querySelector("#f-preview-asking");
+  const previewFeeRow = document.querySelector("#f-preview-fee-row");
+  const previewFeeLabel = document.querySelector("#f-preview-fee-label");
+  const previewFee = document.querySelector("#f-preview-fee");
+  const previewTotal = document.querySelector("#f-preview-total");
+  const previewNote = document.querySelector("#f-preview-note");
   const successScreen = document.querySelector("#success-screen");
   const submitAnother = document.querySelector("#submit-another");
+  const videoFileInput = document.querySelector<HTMLInputElement>("#f-video-file");
+  const videoUrlInput = document.querySelector<HTMLInputElement>("#f-video-url");
+  const videoPreview = document.querySelector("#f-video-preview");
+  const videoPreviewPlayer = videoPreview?.querySelector("video");
+  const videoRemoveButton = document.querySelector("#f-video-remove");
+  const progressLinks = document.querySelectorAll("[data-progress-step]");
+  let selectedVideoUrl = "";
+
+  function updatePricePreview() {
+    if (
+      !priceInput ||
+      !agentFeeInput ||
+      !pricePreview ||
+      !previewAsking ||
+      !previewFeeRow ||
+      !previewFeeLabel ||
+      !previewFee ||
+      !previewTotal ||
+      !previewNote
+    ) {
+      return;
+    }
+
+    const rawPrice = priceInput.value;
+    const rawFee = agentFeeInput.value;
+    const price = Number(rawPrice);
+    const feePercent = Number(rawFee);
+    const hasPrice = rawPrice.trim() !== "" && Number.isFinite(price) && price >= 0;
+    const validFee =
+      rawFee.trim() === "" ||
+      (Number.isFinite(feePercent) && feePercent >= 0 && feePercent <= 100);
+
+    if (!hasPrice) {
+      pricePreview.hidden = true;
+      return;
+    }
+
+    pricePreview.hidden = false;
+    previewAsking.textContent = formatNaira(price);
+
+    if (!validFee) {
+      previewFeeRow.hidden = true;
+      previewTotal.textContent = "—";
+      previewNote.textContent = "Enter an agent fee between 0% and 100% to calculate the buyer total.";
+      return;
+    }
+
+    const breakdown = getPropertyPriceBreakdown(price, feePercent);
+    if (!breakdown) {
+      pricePreview.hidden = true;
+      return;
+    }
+
+    previewTotal.textContent = formatNaira(breakdown.totalAmount);
+    previewFeeRow.hidden = feePercent <= 0;
+    previewFeeLabel.textContent = `Agent fee (${feePercent}%)`;
+    previewFee.textContent = formatNaira(breakdown.feeAmount);
+    previewNote.textContent =
+      feePercent > 0
+        ? "The fee is calculated from the asking price and added to the buyer-facing total."
+        : "No agent fee is included in the buyer-facing total.";
+  }
+
+  priceInput?.addEventListener("input", updatePricePreview);
+  agentFeeInput?.addEventListener("input", updatePricePreview);
+  updatePricePreview();
 
   // ── Character counter ──
   descTA?.addEventListener("input", () => {
     if (descCount) descCount.textContent = descTA.value.length;
   });
+
+  videoFileInput?.addEventListener("change", () => {
+    if (!videoFileInput) return;
+    const file = videoFileInput.files?.[0];
+    if (!file) return;
+
+    if (!["video/mp4", "video/webm"].includes(file.type) || file.size > 4 * 1024 * 1024) {
+      showMessage("Choose an MP4 or WebM video that is 4 MB or smaller.");
+      videoFileInput.value = "";
+      return;
+    }
+
+    if (videoUrlInput) videoUrlInput.value = "";
+    if (selectedVideoUrl) URL.revokeObjectURL(selectedVideoUrl);
+    selectedVideoUrl = URL.createObjectURL(file);
+    if (videoPreviewPlayer instanceof HTMLVideoElement) {
+      videoPreviewPlayer.src = selectedVideoUrl;
+    }
+    if (videoPreview) videoPreview.hidden = false;
+  });
+
+  videoUrlInput?.addEventListener("input", () => {
+    if (!videoUrlInput) return;
+    if (!videoUrlInput.value) return;
+    if (videoFileInput) videoFileInput.value = "";
+    if (selectedVideoUrl) URL.revokeObjectURL(selectedVideoUrl);
+    selectedVideoUrl = "";
+    if (videoPreviewPlayer instanceof HTMLVideoElement) {
+      videoPreviewPlayer.removeAttribute("src");
+      videoPreviewPlayer.load();
+    }
+    if (videoPreview) videoPreview.hidden = true;
+  });
+
+  videoRemoveButton?.addEventListener("click", () => {
+    if (videoFileInput) videoFileInput.value = "";
+    if (selectedVideoUrl) URL.revokeObjectURL(selectedVideoUrl);
+    selectedVideoUrl = "";
+    if (videoPreviewPlayer instanceof HTMLVideoElement) {
+      videoPreviewPlayer.removeAttribute("src");
+      videoPreviewPlayer.load();
+    }
+    if (videoPreview) videoPreview.hidden = true;
+  });
+
+  if ("IntersectionObserver" in window && progressLinks.length) {
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        const currentSection = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+        if (!currentSection) return;
+        progressLinks.forEach((link) => {
+          if (link.getAttribute("href") === `#${currentSection.target.id}`) {
+            link.setAttribute("aria-current", "step");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.25, 0.5] },
+    );
+
+    progressLinks.forEach((link) => {
+      const section = document.getElementById(link.dataset.progressStep);
+      if (section) sectionObserver.observe(section);
+    });
+  }
 
   // ── Image management ──
   let dt = new DataTransfer();
@@ -1668,8 +2086,19 @@ import Footer from "../components/Footer.astro";
     try {
       const fd = new FormData(form);
       fd.delete("images");
+      fd.delete("videoFile");
       const preparedImages = await preparePropertyImages(dt.files);
       preparedImages.forEach((file) => fd.append("images", file));
+
+      const videoFile = videoFileInput?.files?.[0];
+      if (videoFile) {
+        const buttonLabel = submitBtn?.querySelector(".btn-label");
+        if (buttonLabel) buttonLabel.textContent = "Uploading video…";
+        const uploadedVideoUrl = await uploadPropertyVideoFile(videoFile);
+        fd.set("videoUrl", uploadedVideoUrl);
+        if (videoUrlInput) videoUrlInput.value = uploadedVideoUrl;
+        if (videoFileInput) videoFileInput.value = "";
+      }
 
       const res    = await fetch("/api/properties/submit", { method: "POST", body: fd });
       const result = await res.json();
@@ -1686,7 +2115,9 @@ import Footer from "../components/Footer.astro";
       showMessage(
         error instanceof PropertyImagePreparationError
           ? error.message
-          : "We couldn't reach the server. Check your connection and try again.",
+          : error instanceof Error
+            ? error.message
+            : "We couldn't reach the server. Check your connection and try again.",
       );
     } finally {
       setLoading(false);
@@ -1696,6 +2127,7 @@ import Footer from "../components/Footer.astro";
   // Reset to show form again
   submitAnother?.addEventListener("click", () => {
     form.reset();
+    videoRemoveButton?.click();
     form.hidden          = false;
     successScreen.hidden = true;
     dt = new DataTransfer();

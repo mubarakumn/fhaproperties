@@ -1,10 +1,14 @@
 
 ---
+import PropertyPrice from "./PropertyPrice.astro";
+
 const {
   image,
   title,
   location,
-  price = "Price on request",
+  priceAmount,
+  priceLabel = "",
+  agentFeePercent = 0,
   type = "Property",
   listingType = "Sale",
   status = "published",
@@ -74,8 +78,12 @@ const {
 
     <div class="property-bottom">
       <div class="property-price">
-        <span>{status === "sold" ? "Price at time of sale" : "Price"}</span>
-        <strong>{price}</strong>
+        <PropertyPrice
+          priceAmount={priceAmount}
+          priceLabel={priceLabel}
+          agentFeePercent={agentFeePercent}
+          label={status === "sold" ? "Price at time of sale" : "Price"}
+        />
       </div>
       <a href={href} class="property-link">
         View details

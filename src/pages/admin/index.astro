@@ -2,6 +2,8 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { connectDB } from "../../lib/db.js";
 import { getAdminFromCookies } from "../../lib/adminAuth.js";
+import PropertyPrice from "../../components/PropertyPrice.astro";
+import PropertyVideo from "../../components/PropertyVideo.astro";
 import Property from "../../models/Property.js";
 
 export const prerender = false;
@@ -210,6 +212,13 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
                   </div>
                 )}
 
+                {property.videoUrl && (
+                  <PropertyVideo
+                    videoUrl={property.videoUrl}
+                    title={`${property.title} video`}
+                  />
+                )}
+
                 <!-- Specs Row -->
                 <div class="specs-bar">
                   <div class="spec-cell">
@@ -290,10 +299,11 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
                   </details>
                 </td>
                 <td class="table-price">
-                  {property.priceLabel ||
-                    (property.priceAmount != null
-                      ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
-                      : "Price on request")}
+                  <PropertyPrice
+                    priceAmount={property.priceAmount}
+                    priceLabel={property.priceLabel}
+                    agentFeePercent={property.agentFeePercent}
+                  />
                 </td>
                 <td>
                   <span class="table-primary">{property.type || "—"}</span>
@@ -392,10 +402,11 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
                       </div>
                     </td>
                     <td class="table-price">
-                      {property.priceLabel ||
-                        (property.priceAmount != null
-                          ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
-                          : "Price on request")}
+                      <PropertyPrice
+                        priceAmount={property.priceAmount}
+                        priceLabel={property.priceLabel}
+                        agentFeePercent={property.agentFeePercent}
+                      />
                     </td>
                     <td><span class="status-label">{property.listingType || "Sale"}</span></td>
                     <td>
@@ -475,10 +486,11 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
                       </span>
                     </td>
                     <td>
-                      {property.priceLabel ||
-                        (property.priceAmount != null
-                          ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
-                          : "Price on request")}
+                      <PropertyPrice
+                        priceAmount={property.priceAmount}
+                        priceLabel={property.priceLabel}
+                        agentFeePercent={property.agentFeePercent}
+                      />
                     </td>
                     <td>
                       {property.updatedAt
@@ -518,8 +530,17 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
         </div>
 
         <form id="admin-create-form" class="creator-form" novalidate>
+          <nav class="creator-progress" aria-label="New listing steps">
+            <a href="#create-basic" data-create-step="create-basic" aria-current="step"><span>01</span><strong>Basics</strong></a>
+            <a href="#create-location" data-create-step="create-location"><span>02</span><strong>Location</strong></a>
+            <a href="#create-pricing" data-create-step="create-pricing"><span>03</span><strong>Price</strong></a>
+            <a href="#create-description" data-create-step="create-description"><span>04</span><strong>Description</strong></a>
+            <a href="#create-media" data-create-step="create-media"><span>05</span><strong>Media</strong></a>
+            <a href="#create-publish" data-create-step="create-publish"><span>06</span><strong>Publish</strong></a>
+          </nav>
+
           <!-- Section 1: Property Info -->
-          <div class="form-box">
+          <div class="form-box" id="create-basic">
             <div class="form-box-head">
               <span class="f-num">01</span>
               <div>
@@ -564,7 +585,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
           </div>
 
           <!-- Section 2: Location -->
-          <div class="form-box">
+          <div class="form-box" id="create-location">
             <div class="form-box-head">
               <span class="f-num">02</span>
               <div>
@@ -592,7 +613,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
           </div>
 
           <!-- Section 3: Pricing & Specifications -->
-          <div class="form-box">
+          <div class="form-box" id="create-pricing">
             <div class="form-box-head">
               <span class="f-num">03</span>
               <div>
@@ -613,6 +634,12 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
               <div class="f-group">
                 <label for="c-priceLabel">Price Note / Label (optional)</label>
                 <input id="c-priceLabel" name="priceLabel" type="text" placeholder="e.g. Negotiable, ₦25M / annum" maxlength="100" />
+              </div>
+
+              <div class="f-group">
+                <label for="c-agentFee">Agent Fee / Commission (%)</label>
+                <input id="c-agentFee" name="agentFeePercent" type="number" min="0" max="100" step="0.1" value="0" placeholder="e.g. 5 or 10" />
+                <small>The fee is added to the asking price and included in the buyer-facing total.</small>
               </div>
 
               <div class="f-group">
@@ -638,7 +665,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
           </div>
 
           <!-- Section 4: Description -->
-          <div class="form-box">
+          <div class="form-box" id="create-description">
             <div class="form-box-head">
               <span class="f-num">04</span>
               <div>
@@ -661,13 +688,13 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
             </div>
           </div>
 
-          <!-- Section 5: Property Images (Upload up to 5 photos or URLs) -->
-          <div class="form-box">
+          <!-- Section 5: Property Media -->
+          <div class="form-box" id="create-media">
             <div class="form-box-head">
               <span class="f-num">05</span>
               <div>
-                <h3>Property Images (Up to 5)</h3>
-                <p>Upload photos from your computer or paste direct image links.</p>
+                <h3>Property Photos &amp; Video</h3>
+                <p>Add up to 5 photos and an optional video link or MP4/WebM upload.</p>
               </div>
             </div>
 
@@ -705,10 +732,33 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
               <span id="admin-img-counter" class="img-badge">0 / 5 images</span>
               <span id="admin-limit-warn" class="warn-text" hidden>Maximum 5 images reached.</span>
             </div>
+
+            <div class="video-upload-card">
+              <div class="f-group">
+                <label for="c-video-url">Video link</label>
+                <input
+                  id="c-video-url"
+                  name="videoUrl"
+                  type="url"
+                  maxlength="2048"
+                  placeholder="https://youtu.be/… or https://vimeo.com/…"
+                />
+                <small>YouTube, Vimeo, MP4, or WebM links are supported.</small>
+              </div>
+              <div class="f-group">
+                <label for="c-video-file">Or upload a video</label>
+                <input id="c-video-file" name="videoFile" type="file" accept="video/mp4,video/webm" />
+                <small>MP4 or WebM, up to 4 MB. The upload replaces the video link.</small>
+              </div>
+              <div id="admin-video-preview" class="video-preview" hidden>
+                <video controls muted playsinline preload="metadata"></video>
+                <button id="admin-video-remove" type="button" class="btn-sub-action">Remove selected video</button>
+              </div>
+            </div>
           </div>
 
           <!-- Section 6: Publishing Options & Contact -->
-          <div class="form-box submit-box">
+          <div class="form-box submit-box" id="create-publish">
             <div class="publish-choice-row">
               <label class="radio-card">
                 <input type="radio" name="status" value="published" checked />
@@ -1796,12 +1846,96 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     max-width: 960px;
   }
 
+  .creator-progress {
+    position: sticky;
+    top: 112px;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 96%);
+    box-shadow: 0 8px 24px rgb(29 28 26 / 8%);
+    backdrop-filter: blur(12px);
+  }
+
+  .creator-progress a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px;
+    border-radius: 7px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .creator-progress a span {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .creator-progress a strong {
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .creator-progress a[aria-current="step"] {
+    background: var(--gold-light);
+    color: var(--color-brand-deep);
+  }
+
+  .creator-progress a[aria-current="step"] span {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: white;
+  }
+
+  .creator-form .form-box {
+    scroll-margin-top: 172px;
+  }
+
   .form-box {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 26px;
     box-shadow: var(--shadow-card);
+  }
+
+  .video-upload-card {
+    display: grid;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fff, #f7f9fc);
+  }
+
+  .video-preview {
+    display: grid;
+    gap: 10px;
+    max-width: 600px;
+  }
+
+  .video-preview video {
+    width: 100%;
+    max-height: 320px;
+    border-radius: 8px;
+    background: #101820;
   }
 
   .form-box-head {
@@ -2263,6 +2397,17 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     .form-box {
       padding: 18px 14px;
     }
+    .creator-progress {
+      top: 150px;
+      overflow-x: auto;
+      grid-template-columns: repeat(6, minmax(88px, 1fr));
+    }
+    .creator-progress a {
+      justify-content: flex-start;
+    }
+    .creator-form .form-box {
+      scroll-margin-top: 210px;
+    }
     .dashboard-tabs {
       padding-bottom: 2px;
       gap: 4px;
@@ -2522,6 +2667,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     preparePropertyImages,
     PropertyImagePreparationError,
   } from "../../lib/propertyImageClient.js";
+  import { uploadPropertyVideoFile } from "../../lib/propertyVideoClient.js";
 
   // ── Admin Direct Property Creator Form (Tab 3) ──
   const MAX_IMAGES = 5;
@@ -2539,12 +2685,88 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
   const adminLimitWarn = document.querySelector("#admin-limit-warn");
   const adminDesc = document.querySelector("#c-desc");
   const adminDescCount = document.querySelector("#admin-desc-count");
+  const adminVideoFile = document.querySelector<HTMLInputElement>("#c-video-file");
+  const adminVideoUrl = document.querySelector<HTMLInputElement>("#c-video-url");
+  const adminVideoPreview = document.querySelector("#admin-video-preview");
+  const adminVideoPlayer = adminVideoPreview?.querySelector("video");
+  const adminVideoRemove = document.querySelector("#admin-video-remove");
+  const createProgressLinks = document.querySelectorAll<HTMLAnchorElement>("[data-create-step]");
+  let adminVideoObjectUrl = "";
+
+  if ("IntersectionObserver" in window && createProgressLinks.length) {
+    const createStepObserver = new IntersectionObserver(
+      (entries) => {
+        const active = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+        if (!active) return;
+
+        createProgressLinks.forEach((link) => {
+          if (link.hash === `#${active.target.id}`) {
+            link.setAttribute("aria-current", "step");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      },
+      { rootMargin: "-18% 0px -58% 0px", threshold: [0, 0.25, 0.5] },
+    );
+
+    createProgressLinks.forEach((link) => {
+      const section = document.getElementById(link.dataset.createStep || "");
+      if (section) createStepObserver.observe(section);
+    });
+  }
 
   let adminDt = new DataTransfer();
 
   // Char count
   adminDesc?.addEventListener("input", () => {
     if (adminDescCount) adminDescCount.textContent = adminDesc.value.length;
+  });
+
+  adminVideoFile?.addEventListener("change", () => {
+    if (!adminVideoFile) return;
+    const file = adminVideoFile.files?.[0];
+    if (!file) return;
+
+    if (!["video/mp4", "video/webm"].includes(file.type) || file.size > 4 * 1024 * 1024) {
+      showAdminImageError("Choose an MP4 or WebM video that is 4 MB or smaller.");
+      adminVideoFile.value = "";
+      return;
+    }
+
+    if (adminVideoUrl) adminVideoUrl.value = "";
+    if (adminVideoObjectUrl) URL.revokeObjectURL(adminVideoObjectUrl);
+    adminVideoObjectUrl = URL.createObjectURL(file);
+    if (adminVideoPlayer instanceof HTMLVideoElement) {
+      adminVideoPlayer.src = adminVideoObjectUrl;
+    }
+    if (adminVideoPreview) adminVideoPreview.hidden = false;
+  });
+
+  adminVideoUrl?.addEventListener("input", () => {
+    if (!adminVideoUrl) return;
+    if (!adminVideoUrl.value) return;
+    if (adminVideoFile) adminVideoFile.value = "";
+    if (adminVideoObjectUrl) URL.revokeObjectURL(adminVideoObjectUrl);
+    adminVideoObjectUrl = "";
+    if (adminVideoPlayer instanceof HTMLVideoElement) {
+      adminVideoPlayer.removeAttribute("src");
+      adminVideoPlayer.load();
+    }
+    if (adminVideoPreview) adminVideoPreview.hidden = true;
+  });
+
+  adminVideoRemove?.addEventListener("click", () => {
+    if (adminVideoFile) adminVideoFile.value = "";
+    if (adminVideoObjectUrl) URL.revokeObjectURL(adminVideoObjectUrl);
+    adminVideoObjectUrl = "";
+    if (adminVideoPlayer instanceof HTMLVideoElement) {
+      adminVideoPlayer.removeAttribute("src");
+      adminVideoPlayer.load();
+    }
+    if (adminVideoPreview) adminVideoPreview.hidden = true;
   });
 
   function countAdminImages() {
@@ -2735,8 +2957,18 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
     try {
       const fd = new FormData(createForm);
       fd.delete("images");
+      fd.delete("videoFile");
       const preparedImages = await preparePropertyImages(adminDt.files);
       preparedImages.forEach((file) => fd.append("images", file));
+
+      const videoFile = adminVideoFile?.files?.[0];
+      if (videoFile) {
+        if (btnSpin) btnSpin.textContent = "⏫ Uploading video…";
+        const uploadedVideoUrl = await uploadPropertyVideoFile(videoFile);
+        fd.set("videoUrl", uploadedVideoUrl);
+        if (adminVideoUrl) adminVideoUrl.value = uploadedVideoUrl;
+        if (adminVideoFile) adminVideoFile.value = "";
+      }
 
       const res = await fetch("/api/admin/properties/create", {
         method: "POST",
@@ -2753,6 +2985,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
 
       if (res.ok && data.success) {
         createForm.reset();
+        adminVideoRemove?.click();
         adminDt = new DataTransfer();
         if (adminPreviewStrip) adminPreviewStrip.innerHTML = "";
         if (adminUrlSlots) adminUrlSlots.innerHTML = "";
@@ -2770,7 +3003,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
         createMsg.hidden = false;
         createMsg.className = "creator-msg msg-error";
         createMsg.textContent =
-          err instanceof PropertyImagePreparationError
+          err instanceof PropertyImagePreparationError || err instanceof Error
             ? err.message
             : "Network error. Please try again.";
       }
@@ -2778,6 +3011,7 @@ const fhaCount = publishedProperties.filter((p) => p.source === "fha").length;
       createSubmitBtn.disabled = false;
       if (btnLbl) btnLbl.hidden = false;
       if (btnSpin) btnSpin.hidden = true;
+      if (btnSpin) btnSpin.textContent = "⏳ Saving...";
     }
   });
 

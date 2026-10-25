@@ -52,6 +52,12 @@ const propertySchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    agentFeePercent: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
     priceLabel: {
       type: String,
       trim: true,
@@ -81,6 +87,12 @@ const propertySchema = new mongoose.Schema(
     images: {
       type: [String],
       default: [],
+    },
+    videoUrl: {
+      type: String,
+      trim: true,
+      maxlength: 2048,
+      default: "",
     },
     source: {
       type: String,

@@ -87,12 +87,9 @@ const locationSummaries = getPropertyLocationSummaries(properties);
                 image={property.images?.[0]}
                 title={property.title}
                 location={[property.city, property.state].filter(Boolean).join(", ")}
-                price={
-                  property.priceLabel ||
-                  (property.priceAmount != null
-                    ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
-                    : "Price on request")
-                }
+                priceAmount={property.priceAmount}
+                priceLabel={property.priceLabel}
+                agentFeePercent={property.agentFeePercent}
                 type={property.type}
                 listingType={property.listingType}
                 status={property.status}

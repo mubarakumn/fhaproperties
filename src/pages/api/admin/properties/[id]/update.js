@@ -12,6 +12,7 @@ import {
   collectPropertyImageUrls,
   MAX_PROPERTY_IMAGES,
   readPropertyImage,
+  normalizePropertyVideoUrl,
 } from "../../../../../lib/propertyImages.js";
 import Property from "../../../../../models/Property.js";
 
@@ -134,6 +135,15 @@ export async function POST({ request, cookies, params }) {
   const imageFiles = rawImages.filter(
     (item) => item instanceof File && item.size > 0,
   );
+  const rawVideoUrl = clean(form.get("videoUrl"), 2048);
+  const videoUrl = rawVideoUrl ? normalizePropertyVideoUrl(rawVideoUrl) : "";
+
+  if (rawVideoUrl && !videoUrl) {
+    return json(
+      { message: "Use a valid HTTPS YouTube, Vimeo, MP4, or WebM video link." },
+      400,
+    );
+  }
 
   // Parse new URLs
   const totalImages =
@@ -160,6 +170,11 @@ export async function POST({ request, cookies, params }) {
 
   try {
     const priceAmount = parseOptionalNumber(form.get("priceAmount"), "Price");
+    const agentFeePercent = parseOptionalNumber(
+      form.get("agentFeePercent"),
+      "Agent fee",
+      100,
+    ) ?? 0;
     const bedrooms = parseOptionalNumber(form.get("bedrooms"), "Bedrooms", 100);
     const bathrooms = parseOptionalNumber(
       form.get("bathrooms"),
@@ -200,12 +215,14 @@ export async function POST({ request, cookies, params }) {
     existingProperty.city = city;
     existingProperty.address = address;
     existingProperty.priceAmount = priceAmount;
+    existingProperty.agentFeePercent = agentFeePercent;
     existingProperty.priceLabel = priceLabel;
     existingProperty.bedrooms = bedrooms;
     existingProperty.bathrooms = bathrooms;
     existingProperty.area = area;
     existingProperty.features = features;
     existingProperty.images = finalImages;
+    existingProperty.videoUrl = videoUrl;
 
     if (status) {
       const previousStatus = existingProperty.status;
@@ -236,7 +253,8 @@ export async function POST({ request, cookies, params }) {
 
     const validationError =
       error instanceof Error &&
-      (error.message.startsWith("Price ") ||
+      (      error.message.startsWith("Price ") ||
+      error.message.startsWith("Agent fee ") ||
         error.message.startsWith("Bedrooms ") ||
         error.message.startsWith("Bathrooms ") ||
         error.message.startsWith("Images ") ||
