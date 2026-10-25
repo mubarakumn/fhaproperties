@@ -7,6 +7,7 @@ import PropertyPrice from "../../components/PropertyPrice.astro";
 import PropertyVideo from "../../components/PropertyVideo.astro";
 import { connectDB } from "../../lib/db.js";
 import { normalizePropertyImageUrl } from "../../lib/propertyImages.js";
+import { normalizeWhatsAppPhone } from "../../lib/whatsapp.js";
 import Property from "../../models/Property.js";
 
 const { slug } = Astro.params;
@@ -57,11 +58,13 @@ const image = propertyImages[0] || null;
 
 const contactMessage = property
   ? property.status === "sold"
-    ? `Hello FHA Properties Management, I saw that ${property.title}${location ? ` in ${location}` : ""} has been sold. Please help me find a similar property.`
-    : `Hello FHA Properties Management, I would like more information about ${property.title}${location ? ` in ${location}` : ""}.`
+    ? `Hello ${property.submittedBy?.name || "there"}, I saw your listing for ${property.title}${location ? ` in ${location}` : ""} and noticed it has been sold. Do you have a similar property available?`
+    : `Hello ${property.submittedBy?.name || "there"}, I'm interested in your property listing, ${property.title}${location ? ` in ${location}` : ""}. Please share more information and let me know how I can arrange a viewing.`
   : "";
 
-const whatsappPhone = "2348023456789";
+const submitterWhatsAppPhone = normalizeWhatsAppPhone(property?.submittedBy?.phone);
+const hasSubmitterWhatsApp = Boolean(submitterWhatsAppPhone);
+const whatsappPhone = submitterWhatsAppPhone || "2348039145619";
 const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(contactMessage)}`;
 ---
 
@@ -197,7 +200,9 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
                 <p class="eyebrow">PROPERTY SOLD</p>
                 <h2>This property is no longer available.</h2>
                 <p>
-                  Contact our team and we can help you find a similar property.
+                  {hasSubmitterWhatsApp
+                    ? "Message the person who submitted this listing to ask about similar properties."
+                    : "Contact our team and we can help you find a similar property."}
                 </p>
               </>
             ) : (
@@ -205,8 +210,9 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
                 <p class="eyebrow">INTERESTED IN THIS PROPERTY?</p>
                 <h2>Let's help you take the next step.</h2>
                 <p>
-                  Contact our team to confirm availability, pricing, documentation
-                  and viewing arrangements.
+                  {hasSubmitterWhatsApp
+                    ? "Message the person who submitted this listing to confirm availability, pricing, documentation and viewing arrangements."
+                    : "Contact our team to confirm availability, pricing, documentation and viewing arrangements."}
                 </p>
               </>
             )}
@@ -217,7 +223,9 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
               target="_blank"
               rel="noopener noreferrer"
             >
-              Enquire on WhatsApp
+              {hasSubmitterWhatsApp
+                ? "Message listing contact on WhatsApp"
+                : "Enquire on WhatsApp"}
             </a>
 
             <div class="property-phone-box">
