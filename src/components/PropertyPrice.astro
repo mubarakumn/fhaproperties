@@ -1,0 +1,70 @@
+---
+import {
+  formatNaira,
+  getPropertyPriceBreakdown,
+} from "../lib/propertyPricing.js";
+
+const {
+  priceAmount,
+  priceLabel = "",
+  agentFeePercent = 0,
+  label = "Price",
+  className = "",
+} = Astro.props;
+
+const breakdown = getPropertyPriceBreakdown(priceAmount, agentFeePercent);
+const hasFee = Number(agentFeePercent) > 0;
+const displayPrice =
+  priceLabel && !hasFee
+    ? priceLabel
+    : breakdown
+      ? formatNaira(breakdown.totalAmount)
+      : priceLabel || "Price on request";
+---
+
+<div class:list={["property-price-display", className]}>
+  <span>
+    {hasFee && breakdown
+      ? `Total price (includes ${breakdown.feePercent}% agent fee)`
+      : label}
+  </span>
+  <strong>{displayPrice}</strong>
+  {hasFee && breakdown && (
+    <small>
+      Asking price {formatNaira(breakdown.baseAmount)} + agent fee
+      ({breakdown.feePercent}%) {formatNaira(breakdown.feeAmount)}
+    </small>
+  )}
+  {hasFee && !breakdown && (
+    <small>{agentFeePercent}% agent fee applies to the agreed price</small>
+  )}
+  {hasFee && priceLabel && breakdown && <small>{priceLabel}</small>}
+</div>
+
+<style>
+  .property-price-display {
+    display: grid;
+    gap: 4px;
+  }
+
+  .property-price-display > span {
+    color: var(--color-slate-blue);
+    font-size: 0.75rem;
+  }
+
+  .property-price-display > strong {
+    color: var(--color-brand-deep);
+    font-size: 1.1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .property-price-display.detail-price > strong {
+    font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  }
+
+  .property-price-display > small {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+</style>

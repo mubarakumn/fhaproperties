@@ -1,0 +1,67 @@
+---
+import { getPropertyVideoType } from "../lib/propertyImages.js";
+
+const { videoUrl, title = "Property video" } = Astro.props;
+const video = getPropertyVideoType(videoUrl);
+---
+
+{video && (
+  <section class="property-video-section" aria-label="Property video">
+    <h2>Property video</h2>
+    {video.type === "embed" ? (
+      <div class="property-video-frame">
+        <iframe
+          src={video.url}
+          title={title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    ) : (
+      <video class="property-video-file" controls preload="metadata" playsinline>
+        <source src={video.url} />
+        <a href={video.url} target="_blank" rel="noopener noreferrer">
+          Open the property video
+        </a>
+      </video>
+    )}
+  </section>
+)}
+
+<style>
+  .property-video-section {
+    margin-top: 30px;
+  }
+
+  .property-video-section h2 {
+    margin: 0 0 14px;
+    font-size: 1.2rem;
+  }
+
+  .property-video-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-md);
+    background: #101820;
+    box-shadow: var(--shadow-card);
+  }
+
+  .property-video-frame iframe,
+  .property-video-file {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: #101820;
+  }
+
+  .property-video-frame iframe {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+  }
+</style>

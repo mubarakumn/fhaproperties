@@ -1,4 +1,4 @@
-import { connectDB } from "../../../lib/db.js";
+﻿import { connectDB } from "../../../lib/db.js";
 import { sendDailyVisitSummary } from "../../../lib/email.js";
 import SiteVisitDaily from "../../../models/SiteVisitDaily.js";
 
@@ -14,11 +14,14 @@ function json(data, status = 200) {
 export async function GET({ request }) {
   const cronSecret = process.env.CRON_SECRET?.trim();
   if (!cronSecret) {
-    console.error("Daily visit summary is disabled because CRON_SECRET is not configured.");
+    console.error(
+      "Daily visit summary is disabled because CRON_SECRET is not configured.",
+    );
     return json({ error: "Cron authentication is not configured." }, 503);
   }
 
-  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== "Bearer " + cronSecret) {
     return json({ error: "Unauthorized." }, 401);
   }
 
@@ -33,7 +36,10 @@ export async function GET({ request }) {
 
     const dailyStats = await SiteVisitDaily.findOne({ date }).lean();
     if (!dailyStats?.pageViews) {
-      return json({ success: true, message: `No page views recorded for ${date}.` });
+      return json({
+        success: true,
+        message: `No page views recorded for ${date}.`,
+      });
     }
 
     const claimed = await SiteVisitDaily.findOneAndUpdate(
@@ -50,7 +56,10 @@ export async function GET({ request }) {
     ).lean();
 
     if (!claimed) {
-      return json({ success: true, message: "Summary already sent or currently being sent." });
+      return json({
+        success: true,
+        message: "Summary already sent or currently being sent.",
+      });
     }
 
     const result = await sendDailyVisitSummary({
@@ -65,7 +74,10 @@ export async function GET({ request }) {
         { date, emailClaimedAt: now },
         { $set: { emailClaimedAt: null } },
       );
-      return json({ error: "Could not send the daily visit summary email." }, 503);
+      return json(
+        { error: "Could not send the daily visit summary email." },
+        503,
+      );
     }
 
     await SiteVisitDaily.updateOne(

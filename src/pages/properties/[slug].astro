@@ -3,6 +3,8 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import PropertyPrice from "../../components/PropertyPrice.astro";
+import PropertyVideo from "../../components/PropertyVideo.astro";
 import { connectDB } from "../../lib/db.js";
 import { normalizePropertyImageUrl } from "../../lib/propertyImages.js";
 import Property from "../../models/Property.js";
@@ -44,13 +46,6 @@ const location = property
   ? [property.address, property.city, property.state]
       .filter(Boolean)
       .join(", ")
-  : "";
-
-const price = property
-  ? property.priceLabel ||
-    (property.priceAmount != null
-      ? `₦${Number(property.priceAmount).toLocaleString("en-NG")}`
-      : "Price on request")
   : "";
 
 const propertyImages = Array.isArray(property?.images)
@@ -104,8 +99,13 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
           </div>
 
           <div class="price-block">
-            <span>Asking price</span>
-            <strong>{price}</strong>
+            <PropertyPrice
+              priceAmount={property.priceAmount}
+              priceLabel={property.priceLabel}
+              agentFeePercent={property.agentFeePercent}
+              className="detail-price"
+              label={property.status === "sold" ? "Price at time of sale" : "Asking price"}
+            />
           </div>
         </div>
 
@@ -137,6 +137,8 @@ const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(co
             ))}
           </div>
         )}
+
+        <PropertyVideo videoUrl={property.videoUrl} title={`${property.title} video`} />
 
         <div class="property-layout">
           <article class="property-content">

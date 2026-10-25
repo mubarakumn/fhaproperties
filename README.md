@@ -66,6 +66,12 @@ configure:
 If the Brevo API key or verified sender address is missing, the app logs a
 warning and continues without failing the property submission or approval flow.
 
+Property submissions and admin listing forms support YouTube/Vimeo links,
+direct MP4/WebM links, and MP4/WebM video uploads. Uploaded videos are limited
+to 4 MB and stored in Cloudinary in a separate upload request, so the video is
+not bundled with the listing and photo submission. Supported video links are
+embedded on the public property detail page.
+
 The public site records aggregate page views per UTC day and page path. It does
 not store visitor identities, IP addresses, or user-agent details, and it does
 not track admin or API routes. Browsers with Do Not Track enabled are excluded.
@@ -95,6 +101,15 @@ npm run admin:password
 ```
 
 Both commands prompt for passwords without displaying them. Passwords must be 12 to 128 characters and are stored as bcrypt hashes. Changing the password invalidates all existing sessions. Admin sessions are random, database-backed tokens; only their SHA-256 hashes are stored. Restrict database access and use HTTPS in production.
+
+## Listing prices and agent fees
+
+Public submissions and admin listing forms accept an optional agent fee or
+commission percentage from 0 to 100. When a numeric asking price and a fee are
+provided, the website displays the buyer-facing total (asking price plus the
+fee) and shows the fee breakdown. The fee amount is rounded to the nearest
+naira. Existing listings default to a 0% fee; a price label without a numeric
+asking price cannot be used to calculate a total.
 
 ## Replacing property records with demo drafts
 

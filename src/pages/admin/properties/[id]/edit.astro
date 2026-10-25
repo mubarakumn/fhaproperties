@@ -2,6 +2,7 @@
 import BaseLayout from "../../../../layouts/BaseLayout.astro";
 import { connectDB } from "../../../../lib/db.js";
 import { getAdminFromCookies } from "../../../../lib/adminAuth.js";
+import PropertyVideo from "../../../../components/PropertyVideo.astro";
 import Property from "../../../../models/Property.js";
 import mongoose from "mongoose";
 
@@ -79,8 +80,17 @@ const featuresString = Array.isArray(property.features)
       <div id="form-feedback" class="feedback-banner" role="alert" hidden></div>
 
       <form id="edit-property-form" class="edit-form" novalidate data-id={property._id.toString()}>
+        <nav class="edit-progress" aria-label="Edit listing steps">
+          <a href="#edit-basic" data-edit-step="edit-basic" aria-current="step"><span>01</span><strong>Basics</strong></a>
+          <a href="#edit-location" data-edit-step="edit-location"><span>02</span><strong>Location</strong></a>
+          <a href="#edit-pricing" data-edit-step="edit-pricing"><span>03</span><strong>Price</strong></a>
+          <a href="#edit-description" data-edit-step="edit-description"><span>04</span><strong>Description</strong></a>
+          <a href="#edit-media" data-edit-step="edit-media"><span>05</span><strong>Media</strong></a>
+          <a href="#edit-status" data-edit-step="edit-status"><span>06</span><strong>Status</strong></a>
+        </nav>
+
         <!-- ── Section 1: Basic Info ── -->
-        <div class="form-card">
+        <div class="form-card" id="edit-basic">
           <div class="card-head">
             <span class="step-num">01</span>
             <div>
@@ -124,7 +134,7 @@ const featuresString = Array.isArray(property.features)
         </div>
 
         <!-- ── Section 2: Location ── -->
-        <div class="form-card">
+        <div class="form-card" id="edit-location">
           <div class="card-head">
             <span class="step-num">02</span>
             <div>
@@ -173,7 +183,7 @@ const featuresString = Array.isArray(property.features)
         </div>
 
         <!-- ── Section 3: Pricing & Specs ── -->
-        <div class="form-card">
+        <div class="form-card" id="edit-pricing">
           <div class="card-head">
             <span class="step-num">03</span>
             <div>
@@ -210,6 +220,21 @@ const featuresString = Array.isArray(property.features)
                 placeholder="e.g. Negotiable, per annum"
                 maxlength="100"
               />
+            </div>
+
+            <div class="field">
+              <label for="p-agentFee">Agent Fee / Commission (%)</label>
+              <input
+                id="p-agentFee"
+                name="agentFeePercent"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={property.agentFeePercent ?? 0}
+                placeholder="e.g. 5 or 10"
+              />
+              <small>The fee is added to the asking price and included in the buyer-facing total.</small>
             </div>
 
             <div class="field">
@@ -264,7 +289,7 @@ const featuresString = Array.isArray(property.features)
         </div>
 
         <!-- ── Section 4: Description ── -->
-        <div class="form-card">
+        <div class="form-card" id="edit-description">
           <div class="card-head">
             <span class="step-num">04</span>
             <div>
@@ -289,12 +314,12 @@ const featuresString = Array.isArray(property.features)
         </div>
 
         <!-- ── Section 5: Photos Management (Up to 5 total) ── -->
-        <div class="form-card">
+        <div class="form-card" id="edit-media">
           <div class="card-head">
             <span class="step-num">05</span>
             <div>
-              <h2>Property Photos (Up to 5 Total)</h2>
-              <p>Manage current photos, upload new files, or add direct image URLs.</p>
+              <h2>Photos &amp; Video</h2>
+              <p>Keep your listing current with clear photos and an optional video tour.</p>
             </div>
           </div>
 
@@ -365,10 +390,43 @@ const featuresString = Array.isArray(property.features)
               Maximum 5 photos reached. Remove an image to add another.
             </span>
           </div>
+
+          <div class="edit-video-card">
+            <h3>Property video <span class="optional-tag">optional</span></h3>
+            {property.videoUrl ? (
+              <div class="current-video-preview">
+                <p class="section-sublabel">Current video</p>
+                <PropertyVideo videoUrl={property.videoUrl} title={`${property.title} video`} />
+              </div>
+            ) : (
+              <p class="no-photos-note">No video attached. Add a link or upload a short video.</p>
+            )}
+            <div class="field">
+              <label for="p-videoUrl">Video link</label>
+              <input
+                id="p-videoUrl"
+                name="videoUrl"
+                type="url"
+                maxlength="2048"
+                value={property.videoUrl || ""}
+                placeholder="https://youtu.be/… or https://vimeo.com/…"
+              />
+              <small>Supported: YouTube, Vimeo, MP4, or WebM. Clear the link to remove the current video.</small>
+            </div>
+            <div class="field">
+              <label for="p-videoFile">Or replace with an uploaded video</label>
+              <input id="p-videoFile" name="videoFile" type="file" accept="video/mp4,video/webm" />
+              <small>MP4 or WebM, up to 4 MB.</small>
+            </div>
+            <div id="edit-video-preview" class="edit-video-preview" hidden>
+              <video controls muted playsinline preload="metadata"></video>
+              <button id="edit-video-remove" type="button" class="btn-secondary-sm">Discard new upload</button>
+            </div>
+          </div>
         </div>
 
         <!-- ── Section 6: Status & Save ── -->
-        <div class="form-card save-card">
+        <div class="form-card save-card" id="edit-status">
           <div class="status-selector-row">
             <label for="p-status"><strong>Listing Status:</strong></label>
             <select id="p-status" name="status" class="status-select">
@@ -545,12 +603,73 @@ const featuresString = Array.isArray(property.features)
     gap: 22px;
   }
 
+  .edit-progress {
+    position: sticky;
+    top: 88px;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 96%);
+    box-shadow: 0 8px 24px rgb(29 28 26 / 8%);
+    backdrop-filter: blur(12px);
+  }
+
+  .edit-progress a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px;
+    border-radius: 7px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .edit-progress a span {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .edit-progress a strong {
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .edit-progress a[aria-current="step"] {
+    background: rgb(200 152 31 / 12%);
+    color: var(--color-brand-deep);
+  }
+
+  .edit-progress a[aria-current="step"] span {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: white;
+  }
+
   .form-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 28px;
     box-shadow: var(--shadow-card);
+  }
+
+  .edit-form .form-card {
+    scroll-margin-top: 150px;
   }
 
   .card-head {
@@ -751,6 +870,43 @@ const featuresString = Array.isArray(property.features)
     color: var(--muted);
     font-size: 0.85rem;
     margin: 0;
+  }
+
+  .edit-video-card {
+    display: grid;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fff, #f7f9fc);
+  }
+
+  .edit-video-card h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .edit-video-card small {
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .current-video-preview {
+    max-width: 600px;
+  }
+
+  .edit-video-preview {
+    display: grid;
+    gap: 10px;
+    max-width: 600px;
+  }
+
+  .edit-video-preview video {
+    width: 100%;
+    max-height: 320px;
+    border-radius: 8px;
+    background: #101820;
   }
 
   /* Drop zone */
@@ -996,6 +1152,16 @@ const featuresString = Array.isArray(property.features)
     .form-card {
       padding: 18px 14px;
     }
+    .edit-progress {
+      overflow-x: auto;
+      grid-template-columns: repeat(6, minmax(88px, 1fr));
+    }
+    .edit-progress a {
+      justify-content: flex-start;
+    }
+    .edit-form .form-card {
+      scroll-margin-top: 150px;
+    }
     .form-grid {
       grid-template-columns: 1fr;
     }
@@ -1031,6 +1197,7 @@ const featuresString = Array.isArray(property.features)
     preparePropertyImages,
     PropertyImagePreparationError,
   } from "../../../../lib/propertyImageClient.js";
+  import { uploadPropertyVideoFile } from "../../../../lib/propertyVideoClient.js";
 
   const MAX_IMAGES = 5;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -1052,8 +1219,84 @@ const featuresString = Array.isArray(property.features)
   const addUrlBtn = document.querySelector("#btn-add-edit-url");
   const counterBadge = document.querySelector("#photos-counter");
   const limitMsg = document.querySelector("#photos-limit-msg");
+  const editVideoUrlInput = document.querySelector<HTMLInputElement>("#p-videoUrl");
+  const editVideoFileInput = document.querySelector<HTMLInputElement>("#p-videoFile");
+  const editVideoPreview = document.querySelector("#edit-video-preview");
+  const editVideoPlayer = editVideoPreview?.querySelector("video");
+  const editVideoRemove = document.querySelector("#edit-video-remove");
+  const editProgressLinks = document.querySelectorAll<HTMLAnchorElement>("[data-edit-step]");
+  let editVideoObjectUrl = "";
 
   let newDt = new DataTransfer();
+
+  if ("IntersectionObserver" in window && editProgressLinks.length) {
+    const editStepObserver = new IntersectionObserver(
+      (entries) => {
+        const active = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+        if (!active) return;
+
+        editProgressLinks.forEach((link) => {
+          if (link.hash === `#${active.target.id}`) {
+            link.setAttribute("aria-current", "step");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      },
+      { rootMargin: "-18% 0px -58% 0px", threshold: [0, 0.25, 0.5] },
+    );
+
+    editProgressLinks.forEach((link) => {
+      const section = document.getElementById(link.dataset.editStep || "");
+      if (section) editStepObserver.observe(section);
+    });
+  }
+
+  editVideoFileInput?.addEventListener("change", () => {
+    if (!editVideoFileInput) return;
+    const file = editVideoFileInput.files?.[0];
+    if (!file) return;
+
+    if (!["video/mp4", "video/webm"].includes(file.type) || file.size > 4 * 1024 * 1024) {
+      showImageError("Choose an MP4 or WebM video that is 4 MB or smaller.");
+      editVideoFileInput.value = "";
+      return;
+    }
+
+    if (editVideoUrlInput) editVideoUrlInput.value = "";
+    if (editVideoObjectUrl) URL.revokeObjectURL(editVideoObjectUrl);
+    editVideoObjectUrl = URL.createObjectURL(file);
+    if (editVideoPlayer instanceof HTMLVideoElement) {
+      editVideoPlayer.src = editVideoObjectUrl;
+    }
+    if (editVideoPreview) editVideoPreview.hidden = false;
+  });
+
+  editVideoUrlInput?.addEventListener("input", () => {
+    if (!editVideoUrlInput) return;
+    if (!editVideoUrlInput.value) return;
+    if (editVideoFileInput) editVideoFileInput.value = "";
+    if (editVideoObjectUrl) URL.revokeObjectURL(editVideoObjectUrl);
+    editVideoObjectUrl = "";
+    if (editVideoPlayer instanceof HTMLVideoElement) {
+      editVideoPlayer.removeAttribute("src");
+      editVideoPlayer.load();
+    }
+    if (editVideoPreview) editVideoPreview.hidden = true;
+  });
+
+  editVideoRemove?.addEventListener("click", () => {
+    if (editVideoFileInput) editVideoFileInput.value = "";
+    if (editVideoObjectUrl) URL.revokeObjectURL(editVideoObjectUrl);
+    editVideoObjectUrl = "";
+    if (editVideoPlayer instanceof HTMLVideoElement) {
+      editVideoPlayer.removeAttribute("src");
+      editVideoPlayer.load();
+    }
+    if (editVideoPreview) editVideoPreview.hidden = true;
+  });
 
   // Character counter
   descInput?.addEventListener("input", () => {
@@ -1277,8 +1520,18 @@ const featuresString = Array.isArray(property.features)
 
       // Explicitly append newly chosen file objects from newDt
       fd.delete("images");
+      fd.delete("videoFile");
       const preparedImages = await preparePropertyImages(newDt.files);
       preparedImages.forEach((file) => fd.append("images", file));
+
+      const videoFile = editVideoFileInput?.files?.[0];
+      if (videoFile) {
+        if (btnSpinner) btnSpinner.textContent = "⏫ Uploading video…";
+        const uploadedVideoUrl = await uploadPropertyVideoFile(videoFile);
+        fd.set("videoUrl", uploadedVideoUrl);
+        if (editVideoUrlInput) editVideoUrlInput.value = uploadedVideoUrl;
+        if (editVideoFileInput) editVideoFileInput.value = "";
+      }
 
       const res = await fetch(`/api/admin/properties/${encodeURIComponent(propertyId)}/update`, {
         method: "POST",
@@ -1304,7 +1557,7 @@ const featuresString = Array.isArray(property.features)
         feedback.hidden = false;
         feedback.className = "feedback-banner is-error";
         feedback.textContent =
-          err instanceof PropertyImagePreparationError
+          err instanceof PropertyImagePreparationError || err instanceof Error
             ? err.message
             : "Network error. Please try again.";
       }
@@ -1312,6 +1565,7 @@ const featuresString = Array.isArray(property.features)
       saveBtn.disabled = false;
       if (btnText) btnText.hidden = false;
       if (btnSpinner) btnSpinner.hidden = true;
+      if (btnSpinner) btnSpinner.textContent = "⏳ Updating...";
     }
   });
 
