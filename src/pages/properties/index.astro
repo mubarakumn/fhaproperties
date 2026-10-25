@@ -50,12 +50,6 @@ const locationSummaries = getPropertyLocationSummaries(properties);
       </div>
     </section>
 
-    <LocationShowcase
-      locations={locationSummaries}
-      heading="Browse property locations"
-      eyebrow="Explore by location"
-    />
-
     <section class="container listings-section">
       <PropertySearch states={states} buttonLabel="Filter properties" />
 
@@ -115,6 +109,12 @@ const locationSummaries = getPropertyLocationSummaries(properties);
         No properties match your selected filters. Try different options.
       </p>
     </section>
+
+    <LocationShowcase
+      locations={locationSummaries}
+      heading="Browse property locations"
+      eyebrow="Explore by location"
+    />
   </main>
 
   <Footer />

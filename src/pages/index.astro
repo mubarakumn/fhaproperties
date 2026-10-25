@@ -54,12 +54,6 @@ const locationSummaries = getPropertyLocationSummaries(locationProperties);
       <PropertySearch states={states} />
     </div>
 
-    <LocationShowcase
-      locations={locationSummaries}
-      heading="Explore properties across Nigeria"
-      eyebrow="Browse by location"
-    />
-
     <section class="featured-section">
       <div class="container">
         <div class="section-top">
@@ -111,6 +105,12 @@ const locationSummaries = getPropertyLocationSummaries(locationProperties);
         )}
       </div>
     </section>
+
+    <LocationShowcase
+      locations={locationSummaries}
+      heading="Explore properties across Nigeria"
+      eyebrow="Browse by location"
+    />
 
     <Services />
 
